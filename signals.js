@@ -1,204 +1,199 @@
-function calculateRSI(candles, period = 14) {
-  if (candles.length <= period) return null;
-
-  let gains = 0;
-  let losses = 0;
-
-  for (let i = 1; i <= period; i++) {
-    const change = candles[i].close - candles[i - 1].close;
-
-    if (change >= 0) {
-      gains += change;
-    } else {
-      losses += Math.abs(change);
-    }
-  }
-
-  let averageGain = gains / period;
-  let averageLoss = losses / period;
-
-  for (let i = period + 1; i < candles.length; i++) {
-    const change = candles[i].close - candles[i - 1].close;
-
-    const gain = change > 0 ? change : 0;
-    const loss = change < 0 ? Math.abs(change) : 0;
-
-    averageGain =
-      ((averageGain * (period - 1)) + gain) / period;
-
-    averageLoss =
-      ((averageLoss * (period - 1)) + loss) / period;
-  }
-
-  if (averageLoss === 0) return 100;
-
-  const rs = averageGain / averageLoss;
-
-  return 100 - (100 / (1 + rs));
-}
-
-
-function detectTrend(candles) {
-  if (candles.length < 20) {
-    return "判定不能";
-  }
-
-  const recent = candles.slice(-20);
-
-  const first = recent[0].close;
-  const last = recent[recent.length - 1].close;
-
-  const change = last - first;
-
-  if (change > 0.08) return "上昇";
-  if (change < -0.08) return "下降";
-
-  return "横ばい";
-}
-
-
-function calculateLevels(candles) {
-  const recent = candles.slice(-30);
-
-  const highs = recent.map(x => x.high);
-  const lows = recent.map(x => x.low);
-
-  return {
-    support: Math.min(...lows),
-    resistance: Math.max(...highs)
-  };
-}
-
-
-function findReversalSignals(candles) {
+function getSignals(
+  candles,
+  rsi
+) {
   const signals = [];
 
-  for (let i = 2; i < candles.length - 2; i++) {
+  if (
+    !candles ||
+    candles.length < 15
+  ) {
+    return signals;
+  }
 
-    const a = candles[i - 2];
-    const b = candles[i - 1];
-    const c = candles[i];
-    const d = candles[i + 1];
-    const e = candles[i + 2];
+  const last =
+    candles[
+      candles.length - 1
+    ];
 
-    if (
-      c.low < a.low &&
-      c.low < b.low &&
-      d.close > c.close &&
-      e.close > d.close
-    ) {
-      signals.push({
-        type: "buy",
-        datetime: c.datetime,
-        price: c.close,
-        move: e.close - c.close
-      });
-    }
+  const previous =
+    candles[
+      candles.length - 2
+    ];
 
-    if (
-      c.high > a.high &&
-      c.high > b.high &&
-      d.close < c.close &&
-      e.close < d.close
-    ) {
-      signals.push({
-        type: "sell",
-        datetime: c.datetime,
-        price: c.close,
-        move: c.close - e.close
-      });
-    }
+  if (
+    rsi !== null &&
+    rsi <= 30 &&
+    last.close >
+      previous.close
+  ) {
+    signals.push(
+      "🟢 RSI売られすぎからの反発候補"
+    );
+  }
+
+  if (
+    rsi !== null &&
+    rsi >= 70 &&
+    last.close <
+      previous.close
+  ) {
+    signals.push(
+      "🔴 RSI買われすぎからの反落候補"
+    );
+  }
+
+  if (
+    last.close >
+    last.open
+  ) {
+    signals.push(
+      "📈 現在足は陽線"
+    );
+  } else if (
+    last.close <
+    last.open
+  ) {
+    signals.push(
+      "📉 現在足は陰線"
+    );
   }
 
   return signals;
 }
 
 
-function calculateDecision(
-  trend,
-  rsi,
-  price,
-  support,
-  resistance
+function runBacktest(
+  candles
 ) {
-  if (rsi === null) {
-    return "見送り";
+  const result = {
+    candidates: 0,
+    wins: 0,
+    losses: 0,
+    rate: 0
+  };
+
+  if (
+    !candles ||
+    candles.length < 20
+  ) {
+    return result;
   }
 
-  let buyScore = 0;
-  let sellScore = 0;
+  const futureBars = 3;
 
-  if (trend === "上昇") {
-    buyScore++;
-  }
+  for (
+    let i = 14;
+    i <
+      candles.length -
+      futureBars;
+    i++
+  ) {
+    const rsi =
+      calculateRSIForBacktest(
+        candles,
+        i
+      );
 
-  if (trend === "下降") {
-    sellScore++;
-  }
+    if (rsi === null) {
+      continue;
+    }
 
-  if (rsi < 30) {
-    buyScore += 2;
-  }
+    const entry =
+      candles[i].close;
 
-  if (rsi > 70) {
-    sellScore += 2;
-  }
+    const future =
+      candles[
+        i + futureBars
+      ].close;
 
-  const supportDistance =
-    Math.abs(price - support);
+    if (rsi <= 30) {
+      result.candidates++;
 
-  const resistanceDistance =
-    Math.abs(resistance - price);
+      if (
+        future > entry
+      ) {
+        result.wins++;
+      } else {
+        result.losses++;
+      }
+    }
 
-  if (supportDistance < 0.05) {
-    buyScore += 2;
-  }
+    if (rsi >= 70) {
+      result.candidates++;
 
-  if (resistanceDistance < 0.05) {
-    sellScore += 2;
+      if (
+        future < entry
+      ) {
+        result.wins++;
+      } else {
+        result.losses++;
+      }
+    }
   }
 
   if (
-    buyScore >= 3 &&
-    buyScore > sellScore
+    result.candidates > 0
   ) {
-    return "買い候補";
+    result.rate =
+      result.wins /
+      result.candidates *
+      100;
   }
 
-  if (
-    sellScore >= 3 &&
-    sellScore > buyScore
-  ) {
-    return "売り候補";
-  }
-
-  return "見送り";
+  return result;
 }
 
 
-function runBacktest(signals) {
-  let wins = 0;
+function calculateRSIForBacktest(
+  candles,
+  index
+) {
+  const period = 14;
+
+  if (
+    index < period
+  ) {
+    return null;
+  }
+
+  let gains = 0;
   let losses = 0;
 
-  signals.forEach(signal => {
-    if (signal.move >= 0.10) {
-      wins++;
+  for (
+    let i =
+      index -
+      period +
+      1;
+
+    i <= index;
+
+    i++
+  ) {
+    const change =
+      candles[i].close -
+      candles[i - 1].close;
+
+    if (change > 0) {
+      gains += change;
     } else {
-      losses++;
+      losses -= change;
     }
-  });
+  }
 
-  const total = wins + losses;
+  gains /= period;
+  losses /= period;
 
-  const rate =
-    total > 0
-      ? (wins / total) * 100
-      : 0;
+  if (
+    losses === 0
+  ) {
+    return 100;
+  }
 
-  return {
-    total,
-    wins,
-    losses,
-    rate
-  };
+  const rs =
+    gains / losses;
+
+  return 100 -
+    100 /
+      (1 + rs);
 }
