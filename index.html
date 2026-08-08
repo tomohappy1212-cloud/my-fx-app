@@ -2,296 +2,71 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSVテスト</title>
-
-<style>
-body{
-  background:#111;
-  color:white;
-  font-family:Arial,sans-serif;
-  padding:20px;
-}
-
-button{
-  padding:12px;
-  margin-top:10px;
-}
-
-#result{
-  margin-top:20px;
-  padding:15px;
-  background:#222;
-  border-radius:10px;
-  line-height:1.8;
-}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSV診断</title>
 </head>
 
-<body>
+<body style="background:#111;color:white;font-family:sans-serif;padding:20px">
 
-<h2>📊 USD/JPY CSVテスト</h2>
+<h2>CSV診断</h2>
 
-<p>CSVファイルを選択してください。</p>
+<input type="file" id="file" accept=".csv">
 
-<input
-  type="file"
-  id="file"
-  accept=".csv,text/csv">
-
-<div id="result">
-まだファイルが選択されていません。
-</div>
-
+<pre id="result" style="white-space:pre-wrap;margin-top:20px"></pre>
 
 <script>
 
-const fileInput =
+const file =
 document.getElementById("file");
 
 const result =
 document.getElementById("result");
 
+file.addEventListener("change", function(){
 
-fileInput.addEventListener(
-"change",
-function(){
+  const selected = this.files[0];
 
-  const file=this.files[0];
-
-  if(!file){
-
+  if(!selected){
     return;
-
   }
 
+  result.textContent =
+  "読み込み開始...\n\n";
 
-  const reader=
+  const reader =
   new FileReader();
 
+  reader.onload = function(event){
 
-  reader.onload=
-  function(){
+    try{
 
-    const text=
-    reader.result;
+      const text =
+      event.target.result;
 
+      result.textContent =
+      "読み込み成功！\n\n" +
+      "文字数: " + text.length +
+      "\n\n最初の500文字:\n" +
+      text.substring(0,500);
 
-    /*
-      BOMを削除
-    */
+    }catch(error){
 
-    const clean=
-    text.replace(/^\uFEFF/,"");
-
-
-    /*
-      改行で分割
-    */
-
-    const lines=
-    clean.trim().split(/\r?\n/);
-
-
-    if(lines.length<2){
-
-      result.innerHTML=
-      "❌ データが少なすぎます。";
-
-      return;
+      result.textContent =
+      "エラー:\n" +
+      error.message;
 
     }
-
-
-    /*
-      今回のTwelve Data CSVは
-      タブ区切り
-    */
-
-    const header=
-    lines[0]
-    .split("\t")
-    .map(x=>x.trim().toLowerCase());
-
-
-    /*
-      列の位置を確認
-    */
-
-    const datetimeIndex=
-    header.indexOf("datetime");
-
-    const openIndex=
-    header.indexOf("open");
-
-    const highIndex=
-    header.indexOf("high");
-
-    const lowIndex=
-    header.indexOf("low");
-
-    const closeIndex=
-    header.indexOf("close");
-
-
-    /*
-      列が見つからなければ表示
-    */
-
-    if(
-      datetimeIndex===-1 ||
-      openIndex===-1 ||
-      highIndex===-1 ||
-      lowIndex===-1 ||
-      closeIndex===-1
-    ){
-
-      result.innerHTML=`
-
-        ❌ 列を認識できません。
-
-        <br><br>
-
-        認識した列：
-
-        ${header.join(" / ")}
-
-      `;
-
-      return;
-
-    }
-
-
-    let count=0;
-
-    let firstData="";
-
-    let lastData="";
-
-
-    /*
-      データを確認
-    */
-
-    for(
-      let i=1;
-      i<lines.length;
-      i++
-    ){
-
-      if(!lines[i].trim()){
-
-        continue;
-
-      }
-
-
-      const columns=
-      lines[i].split("\t");
-
-
-      const datetime=
-      columns[datetimeIndex];
-
-      const open=
-      parseFloat(columns[openIndex]);
-
-      const high=
-      parseFloat(columns[highIndex]);
-
-      const low=
-      parseFloat(columns[lowIndex]);
-
-      const close=
-      parseFloat(columns[closeIndex]);
-
-
-      if(
-        datetime &&
-        Number.isFinite(open) &&
-        Number.isFinite(high) &&
-        Number.isFinite(low) &&
-        Number.isFinite(close)
-      ){
-
-        count++;
-
-
-        if(!firstData){
-
-          firstData=
-          `${datetime} / ${close}`;
-
-        }
-
-
-        lastData=
-        `${datetime} / ${close}`;
-
-      }
-
-    }
-
-
-    if(count===0){
-
-      result.innerHTML=`
-
-        ❌ データを読み込めませんでした。
-
-        <br><br>
-
-        列は認識できていますが、
-        数値として読み込めるデータがありません。
-
-      `;
-
-      return;
-
-    }
-
-
-    result.innerHTML=`
-
-      <h3>✅ 読み込み成功！</h3>
-
-      <p>
-      データ数：
-      <strong>${count}</strong>本
-      </p>
-
-      <p>
-      最初のデータ：
-      ${firstData}
-      </p>
-
-      <p>
-      最後のデータ：
-      ${lastData}
-      </p>
-
-      <hr>
-
-      <p>
-      🎉 CSVは正常に読み込めています。
-      </p>
-
-    `;
 
   };
 
+  reader.onerror = function(){
 
-  reader.onerror=
-  function(){
-
-    result.innerHTML=
-    "❌ ファイルを読み込めませんでした。";
+    result.textContent =
+    "ファイル自体を読み込めませんでした。";
 
   };
 
-
-  reader.readAsText(file);
+  reader.readAsText(selected);
 
 });
 
