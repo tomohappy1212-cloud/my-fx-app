@@ -187,7 +187,7 @@ function analyzeCSV(text){
 
   for(let i=1;i<lines.length;i++){
 
-    const c=lines[i].split(",");
+    const c=lines[i].split(/\t|,/);
 
     if(c.length<5)continue;
 
