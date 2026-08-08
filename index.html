@@ -3,197 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>FX Vision AI</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="topbar">
-
-  <div>
-    <h1>FX Vision AI</h1>
-    <div class="subtitle">USD/JPY ・ 1時間足</div>
-  </div>
-
-  <div id="marketStatus" class="status offline">
-    未接続
-  </div>
-
-</header>
-
-
-<main>
-
-  <section class="toolbar">
-
-    <button id="loadButton">
-      📊 データ更新
-    </button>
-
-    <button id="soundButton">
-      🔔 通知音 OFF
-    </button>
-
-    <button id="clearLineButton">
-      ✕ ライン削除
-    </button>
-
-  </section>
-
-
-  <section class="dashboard">
-
-    <div class="card">
-      <span>現在値</span>
-      <strong id="currentPrice">---</strong>
+  <header class="topbar">
+    <div>
+      <h1>FX Vision AI</h1>
+      <p>USD/JPY・1時間足</p>
     </div>
 
-    <div class="card">
-      <span>トレンド</span>
-      <strong id="trend">---</strong>
+    <div id="marketStatus" class="status">
+      未接続
+    </div>
+  </header>
+
+  <main>
+
+    <div class="toolbar">
+      <button id="loadButton">データ更新</button>
+      <button id="clearLineButton">ライン削除</button>
     </div>
 
-    <div class="card">
-      <span>RSI</span>
-      <strong id="rsi">---</strong>
-    </div>
+    <section class="dashboard">
 
-    <div class="card decisionCard">
-      <span>判定</span>
-      <strong id="decision">---</strong>
-    </div>
+      <div class="card">
+        <span>現在値</span>
+        <strong id="currentPrice">---</strong>
+      </div>
 
-  </section>
+      <div class="card">
+        <span>トレンド</span>
+        <strong id="trend">---</strong>
+      </div>
 
+      <div class="card">
+        <span>RSI</span>
+        <strong id="rsi">---</strong>
+      </div>
 
-  <section class="chartCard">
+      <div class="card">
+        <span>判定</span>
+        <strong id="decision">---</strong>
+      </div>
 
-    <div class="chartTop">
+    </section>
 
-      <div>
+    <section class="chartCard">
+
+      <div class="chartHeader">
         <strong>USD/JPY</strong>
-        <span>1時間足</span>
+        <span id="alertMessage">待機中</span>
       </div>
 
-      <div id="alertMessage">
-        待機中
-      </div>
+      <div class="chartArea">
 
-    </div>
+        <div id="chartScroll" class="chartScroll">
+          <canvas id="chartCanvas"></canvas>
+        </div>
 
-
-    <div class="chartArea">
-
-      <div
-        id="chartScroll"
-        class="chartScroll"
-      >
-
-        <canvas id="chartCanvas"></canvas>
+        <div id="priceAxis" class="priceAxis"></div>
 
       </div>
 
-
-      <div
-        id="priceAxis"
-        class="priceAxis"
-      ></div>
-
-    </div>
-
-
-    <div class="chartHelp">
-      チャートを2回タップ → トレンドライン設定
-    </div>
-
-  </section>
-
-
-  <section class="levels">
-
-    <div class="levelCard">
-
-      <span>サポート</span>
-
-      <strong id="support">
-        ---
-      </strong>
-
-    </div>
-
-
-    <div class="levelCard">
-
-      <span>レジスタンス</span>
-
-      <strong id="resistance">
-        ---
-      </strong>
-
-    </div>
-
-  </section>
-
-
-  <section class="signalCard">
-
-    <h2>AI判定</h2>
-
-    <div id="signalResult">
-      データを取得してください。
-    </div>
-
-  </section>
-
-
-  <section class="backtestCard">
-
-    <h2>過去検証</h2>
-
-    <div class="backtestGrid">
-
-      <div>
-        <span>候補</span>
-        <strong id="signalCount">---</strong>
+      <div class="chartHelp">
+        チャートを2回クリックしてトレンドラインを設定
       </div>
 
-      <div>
-        <span>成功</span>
-        <strong id="winCount">---</strong>
+    </section>
+
+    <section class="levels">
+
+      <div class="card">
+        <span>サポート</span>
+        <strong id="support">---</strong>
       </div>
 
-      <div>
-        <span>失敗</span>
-        <strong id="lossCount">---</strong>
+      <div class="card">
+        <span>レジスタンス</span>
+        <strong id="resistance">---</strong>
       </div>
 
-      <div>
-        <span>成功率</span>
-        <strong id="winRate">---</strong>
+    </section>
+
+    <section class="card signalCard">
+      <h2>反転候補</h2>
+      <div id="signals">---</div>
+    </section>
+
+    <section class="card">
+      <h2>過去検証</h2>
+
+      <div class="backtestGrid">
+
+        <div>
+          <span>候補</span>
+          <strong id="signalCount">---</strong>
+        </div>
+
+        <div>
+          <span>成功</span>
+          <strong id="winCount">---</strong>
+        </div>
+
+        <div>
+          <span>失敗</span>
+          <strong id="lossCount">---</strong>
+        </div>
+
+        <div>
+          <span>勝率</span>
+          <strong id="winRate">---</strong>
+        </div>
+
       </div>
+    </section>
 
-    </div>
+  </main>
 
-  </section>
-
-
-  <section class="signalsList">
-
-    <h2>反転候補</h2>
-
-    <div id="signals"></div>
-
-  </section>
-
-</main>
-
-
-<script src="signals.js"></script>
-<script src="alerts.js"></script>
-<script src="chart.js"></script>
+  <script src="signals.js"></script>
+  <script src="alerts.js"></script>
+  <script src="chart.js"></script>
 
 </body>
 </html>
