@@ -15,9 +15,7 @@
 
   <div>
     <h1>FX Vision AI</h1>
-    <div class="subtitle">
-      USD/JPY ・ 1時間足
-    </div>
+    <div class="subtitle">USD/JPY ・ 1時間足</div>
   </div>
 
   <div id="marketStatus" class="status offline">
@@ -87,9 +85,22 @@
     </div>
 
 
-    <div class="chartViewport">
+    <div class="chartArea">
 
-      <canvas id="chartCanvas"></canvas>
+      <div
+        id="chartScroll"
+        class="chartScroll"
+      >
+
+        <canvas id="chartCanvas"></canvas>
+
+      </div>
+
+
+      <div
+        id="priceAxis"
+        class="priceAxis"
+      ></div>
 
     </div>
 
@@ -129,11 +140,7 @@
 
   <section class="signalCard">
 
-    <div class="sectionTitle">
-
-      <h2>AI判定</h2>
-
-    </div>
+    <h2>AI判定</h2>
 
     <div id="signalResult">
       データを取得してください。
@@ -150,30 +157,22 @@
 
       <div>
         <span>候補</span>
-        <strong id="signalCount">
-          ---
-        </strong>
+        <strong id="signalCount">---</strong>
       </div>
 
       <div>
         <span>成功</span>
-        <strong id="winCount">
-          ---
-        </strong>
+        <strong id="winCount">---</strong>
       </div>
 
       <div>
         <span>失敗</span>
-        <strong id="lossCount">
-          ---
-        </strong>
+        <strong id="lossCount">---</strong>
       </div>
 
       <div>
         <span>成功率</span>
-        <strong id="winRate">
-          ---
-        </strong>
+        <strong id="winRate">---</strong>
       </div>
 
     </div>
