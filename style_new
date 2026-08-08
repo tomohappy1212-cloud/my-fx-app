@@ -16,18 +16,12 @@ body {
   min-height: 100vh;
 }
 
-/* =========================
-   ヘッダー
-========================= */
-
 .topbar {
   min-height: 64px;
   padding: 10px 16px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   background: #11161d;
   border-bottom: 1px solid #29303a;
 }
@@ -46,10 +40,8 @@ body {
 .status {
   padding: 7px 10px;
   border-radius: 7px;
-
   background: #241719;
   color: #ff6d6d;
-
   font-size: 12px;
   font-weight: bold;
 }
@@ -59,20 +51,12 @@ body {
   color: #38df8b;
 }
 
-/* =========================
-   メイン
-========================= */
-
 main {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 12px;
 }
-
-/* =========================
-   ボタン
-========================= */
 
 .toolbar {
   display: flex;
@@ -82,13 +66,10 @@ main {
 
 button {
   padding: 9px 13px;
-
   border: 1px solid #303844;
   border-radius: 7px;
-
   background: #181d25;
   color: #edf0f4;
-
   font-weight: bold;
   cursor: pointer;
 }
@@ -96,14 +77,6 @@ button {
 button:hover {
   background: #202630;
 }
-
-button:active {
-  transform: translateY(1px);
-}
-
-/* =========================
-   情報カード
-========================= */
 
 .dashboard {
   display: grid;
@@ -114,7 +87,6 @@ button:active {
 
 .card {
   padding: 12px;
-
   background: #11161d;
   border: 1px solid #29303a;
   border-radius: 9px;
@@ -123,7 +95,6 @@ button:active {
 .card > span {
   display: block;
   margin-bottom: 6px;
-
   color: #7f8895;
   font-size: 11px;
 }
@@ -137,26 +108,19 @@ h2 {
   font-size: 15px;
 }
 
-/* =========================
-   チャート
-========================= */
-
 .chartCard {
   background: #0a0d12;
   border: 1px solid #29303a;
   border-radius: 9px;
-
   overflow: hidden;
 }
 
 .chartHeader {
   height: 46px;
   padding: 0 12px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   border-bottom: 1px solid #252c35;
 }
 
@@ -172,25 +136,16 @@ h2 {
 .chartArea {
   width: 100%;
   height: 520px;
-
   display: flex;
-
   overflow: hidden;
 }
-
-/* =========================
-   チャート本体
-========================= */
 
 .chartScroll {
   flex: 1;
   min-width: 0;
-
   height: 520px;
-
   overflow-x: auto;
   overflow-y: hidden;
-
   background: #0a0d12;
 }
 
@@ -199,94 +154,56 @@ h2 {
   height: 520px;
 }
 
-/* =========================
-   固定価格軸
-========================= */
-
 .priceAxis {
   flex: 0 0 82px;
-
   width: 82px;
   height: 520px;
-
   position: relative;
-
   background: #11161d;
-
   border-left: 1px solid #353c47;
-
   overflow: hidden;
-
   z-index: 10;
 }
 
 .priceGrid {
   position: absolute;
-
   left: 0;
   right: 0;
-
   height: 1px;
-
   background: #252c35;
 }
 
 .priceLabel {
   position: absolute;
-
   left: 0;
-
   width: 100%;
-
   transform: translateY(-50%);
-
   padding-left: 7px;
-
   color: #aeb5bf;
-
   font-size: 12px;
-
   white-space: nowrap;
 }
 
 .priceLabel.current {
   padding: 4px 6px;
-
   background: #e7c75a;
   color: #111318;
-
   font-weight: bold;
 }
 
-/* =========================
-   チャート説明
-========================= */
-
 .chartHelp {
   padding: 8px 12px;
-
   border-top: 1px solid #202630;
-
   color: #6e7784;
-
   font-size: 11px;
 }
-
-/* =========================
-   サポート・レジスタンス
-========================= */
 
 .levels {
   display: grid;
   grid-template-columns: 1fr 1fr;
-
   gap: 8px;
   margin-top: 10px;
 }
-
-/* =========================
-   反転候補
-========================= */
 
 .signalCard {
   margin-top: 10px;
@@ -300,13 +217,8 @@ h2 {
 
 #signals div {
   padding: 6px 0;
-
   border-bottom: 1px solid #202630;
 }
-
-/* =========================
-   過去検証
-========================= */
 
 .backtestGrid {
   display: grid;
@@ -316,18 +228,14 @@ h2 {
 
 .backtestGrid > div {
   padding: 10px;
-
   background: #181d25;
-
   border: 1px solid #252c35;
   border-radius: 7px;
 }
 
 .backtestGrid span {
   display: block;
-
   margin-bottom: 5px;
-
   color: #7f8895;
   font-size: 11px;
 }
@@ -336,12 +244,7 @@ h2 {
   font-size: 17px;
 }
 
-/* =========================
-   スマホ
-========================= */
-
 @media (max-width: 700px) {
-
   main {
     padding: 8px;
   }
