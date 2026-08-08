@@ -1,76 +1,220 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CSV診断</title>
-</head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<body style="background:#111;color:white;font-family:sans-serif;padding:20px">
+  <title>FX Vision AI</title>
 
-<h2>CSV診断</h2>
-
-<input type="file" id="file" accept=".csv">
-
-<pre id="result" style="white-space:pre-wrap;margin-top:20px"></pre>
-
-<script>
-
-const file =
-document.getElementById("file");
-
-const result =
-document.getElementById("result");
-
-file.addEventListener("change", function(){
-
-  const selected = this.files[0];
-
-  if(!selected){
-    return;
-  }
-
-  result.textContent =
-  "読み込み開始...\n\n";
-
-  const reader =
-  new FileReader();
-
-  reader.onload = function(event){
-
-    try{
-
-      const text =
-      event.target.result;
-
-      result.textContent =
-      "読み込み成功！\n\n" +
-      "文字数: " + text.length +
-      "\n\n最初の500文字:\n" +
-      text.substring(0,500);
-
-    }catch(error){
-
-      result.textContent =
-      "エラー:\n" +
-      error.message;
-
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
     }
 
-  };
+    h1 {
+      margin-bottom: 8px;
+    }
 
-  reader.onerror = function(){
+    button {
+      padding: 14px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-    result.textContent =
-    "ファイル自体を読み込めませんでした。";
+    #status {
+      margin-top: 20px;
+      padding: 15px;
+      background: #222;
+      border-radius: 10px;
+      white-space: pre-wrap;
+    }
 
-  };
+    #prices {
+      margin-top: 20px;
+      padding: 15px;
+      background: #222;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
 
-  reader.readAsText(selected);
+<body>
 
-});
+  <h1>FX Vision AI</h1>
 
-</script>
+  <p>USD/JPY・1時間足</p>
+
+  <button id="loadButton">
+    価格データを取得
+  </button>
+
+  <div id="status">
+    まだ取得していません。
+  </div>
+
+  <div id="prices"></div>
+
+
+  <script>
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbwh5D_62VC0fGY4PdgUyYNbp1lRPqbw2AcNgr8GQCNXeLLLYKcTnBLhxkK_XLgzROfjvw/exec";
+
+
+    const button =
+      document.getElementById("loadButton");
+
+    const status =
+      document.getElementById("status");
+
+    const prices =
+      document.getElementById("prices");
+
+
+    button.addEventListener("click", async function() {
+
+      status.textContent =
+        "価格データを取得しています……";
+
+      prices.innerHTML = "";
+
+
+      try {
+
+        const response =
+          await fetch(API_URL);
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "HTTPエラー: " + response.status
+          );
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        /*
+         * Twelve Dataのエラー確認
+         */
+
+        if (data.status === "error") {
+
+          throw new Error(
+            data.message || "APIエラー"
+          );
+
+        }
+
+
+        /*
+         * データ確認
+         */
+
+        if (
+          !data.values ||
+          !Array.isArray(data.values) ||
+          data.values.length === 0
+        ) {
+
+          throw new Error(
+            "価格データがありません。"
+          );
+
+        }
+
+
+        /*
+         * 最新データ
+         */
+
+        const latest =
+          data.values[0];
+
+
+        status.textContent =
+          "✅ データ取得成功\n\n" +
+          "データ数: " +
+          data.values.length +
+          "本\n\n" +
+          "最新時刻: " +
+          latest.datetime +
+          "\n" +
+          "Open: " +
+          latest.open +
+          "\n" +
+          "High: " +
+          latest.high +
+          "\n" +
+          "Low: " +
+          latest.low +
+          "\n" +
+          "Close: " +
+          latest.close;
+
+
+        /*
+         * 最初の10本を表示
+         */
+
+        let html =
+          "<h3>価格データ</h3>";
+
+        html += "<table border='1' cellpadding='8'>";
+
+        html +=
+          "<tr>" +
+          "<th>日時</th>" +
+          "<th>Open</th>" +
+          "<th>High</th>" +
+          "<th>Low</th>" +
+          "<th>Close</th>" +
+          "</tr>";
+
+
+        data.values
+          .slice(0, 10)
+          .forEach(function(item) {
+
+            html +=
+              "<tr>" +
+              "<td>" + item.datetime + "</td>" +
+              "<td>" + item.open + "</td>" +
+              "<td>" + item.high + "</td>" +
+              "<td>" + item.low + "</td>" +
+              "<td>" + item.close + "</td>" +
+              "</tr>";
+
+          });
+
+
+        html += "</table>";
+
+        prices.innerHTML = html;
+
+
+      } catch (error) {
+
+        status.textContent =
+          "❌ エラー\n\n" +
+          error.message;
+
+      }
+
+    });
+
+  </script>
 
 </body>
 </html>
