@@ -7,12 +7,8 @@ body {
   margin: 0;
   padding: 0;
   background: #0b0e13;
-  color: #f2f4f7;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  color: #f1f3f6;
+  font-family: Arial, sans-serif;
 }
 
 body {
@@ -21,18 +17,14 @@ body {
 
 .topbar {
   height: 64px;
-  padding: 0 18px;
+  padding: 0 16px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  background: #11151c;
-  border-bottom: 1px solid #252b35;
-
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  background: #11161d;
+  border-bottom: 1px solid #29303a;
 }
 
 .topbar h1 {
@@ -40,27 +32,26 @@ body {
   font-size: 20px;
 }
 
-.subtitle {
-  margin-top: 3px;
-  color: #7f8794;
+.topbar p {
+  margin: 4px 0 0;
+  color: #7f8895;
   font-size: 12px;
 }
 
 .status {
-  padding: 7px 11px;
+  padding: 7px 10px;
   border-radius: 7px;
+
+  background: #241719;
+  color: #ff6d6d;
+
   font-size: 12px;
-  font-weight: 700;
+  font-weight: bold;
 }
 
 .status.online {
-  color: #35e68b;
   background: #10271c;
-}
-
-.status.offline {
-  color: #ff7474;
-  background: #2b1719;
+  color: #38df8b;
 }
 
 main {
@@ -77,54 +68,58 @@ main {
 }
 
 button {
-  border: 1px solid #303742;
+  padding: 9px 13px;
+
+  border: 1px solid #303844;
   border-radius: 7px;
 
   background: #181d25;
-  color: #e9edf2;
+  color: #edf0f4;
 
-  padding: 9px 13px;
-
-  font-size: 13px;
-  font-weight: 700;
-
+  font-weight: bold;
   cursor: pointer;
 }
 
-button:hover {
-  background: #202631;
+button:active {
+  transform: translateY(1px);
 }
 
 /* =========================
-   ダッシュボード
+   情報カード
 ========================= */
 
 .dashboard {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+
   margin-bottom: 10px;
 }
 
 .card {
-  min-height: 72px;
   padding: 12px;
 
-  background: #11151c;
-  border: 1px solid #252b35;
+  background: #11161d;
+  border: 1px solid #29303a;
   border-radius: 9px;
 }
 
-.card span {
+.card > span {
   display: block;
-  margin-bottom: 7px;
 
-  color: #7f8794;
+  margin-bottom: 6px;
+
+  color: #7f8895;
   font-size: 11px;
 }
 
 .card strong {
-  font-size: 20px;
+  font-size: 19px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
 }
 
 /* =========================
@@ -132,36 +127,32 @@ button:hover {
 ========================= */
 
 .chartCard {
-  background: #0f1319;
-  border: 1px solid #252b35;
+  background: #0a0d12;
+  border: 1px solid #29303a;
   border-radius: 9px;
+
   overflow: hidden;
 }
 
-.chartTop {
-  height: 48px;
+.chartHeader {
+  height: 46px;
   padding: 0 12px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  border-bottom: 1px solid #252b35;
+  border-bottom: 1px solid #252c35;
 }
 
-.chartTop strong {
+.chartHeader strong {
   font-size: 14px;
 }
 
-.chartTop span {
-  margin-left: 8px;
-  color: #777f8c;
-  font-size: 11px;
+.chartHeader span {
+  color: #e7c75a;
+  font-size: 12px;
 }
-
-/* =========================
-   チャート本体
-========================= */
 
 .chartArea {
   width: 100%;
@@ -169,20 +160,21 @@ button:hover {
 
   display: flex;
 
-  background: #0a0d12;
-
   overflow: hidden;
 }
 
+/* =========================
+   ローソク足スクロール部分
+========================= */
+
 .chartScroll {
   flex: 1;
+  min-width: 0;
 
   height: 520px;
 
   overflow-x: auto;
   overflow-y: hidden;
-
-  min-width: 0;
 
   background: #0a0d12;
 }
@@ -206,38 +198,11 @@ button:hover {
 
   background: #11161d;
 
-  border-left: 1px solid #303741;
-
-  z-index: 5;
+  border-left: 1px solid #353c47;
 
   overflow: hidden;
-}
 
-.priceLabel {
-  position: absolute;
-
-  left: 0;
-  width: 100%;
-
-  transform: translateY(-50%);
-
-  padding-left: 7px;
-
-  color: #a5adb8;
-
-  font-size: 12px;
-
-  white-space: nowrap;
-}
-
-.priceLabel.current {
-  padding: 4px 6px;
-
-  color: #111318;
-
-  background: #e7c75a;
-
-  font-weight: 700;
+  z-index: 10;
 }
 
 .priceGrid {
@@ -248,21 +213,48 @@ button:hover {
 
   height: 1px;
 
-  background: #303741;
+  background: #252c35;
+}
+
+.priceLabel {
+  position: absolute;
+
+  left: 0;
+
+  width: 100%;
+
+  transform: translateY(-50%);
+
+  padding-left: 7px;
+
+  color: #aeb5bf;
+
+  font-size: 12px;
+
+  white-space: nowrap;
+}
+
+.priceLabel.current {
+  padding: 4px 6px;
+
+  background: #e7c75a;
+  color: #111318;
+
+  font-weight: bold;
 }
 
 .chartHelp {
   padding: 8px 12px;
 
-  color: #666f7d;
+  border-top: 1px solid #202630;
+
+  color: #6e7784;
 
   font-size: 11px;
-
-  border-top: 1px solid #202631;
 }
 
 /* =========================
-   レベル
+   サポート・レジスタンス
 ========================= */
 
 .levels {
@@ -274,84 +266,17 @@ button:hover {
   margin-top: 10px;
 }
 
-.levelCard {
-  padding: 12px;
-
-  background: #11151c;
-
-  border: 1px solid #252b35;
-  border-radius: 9px;
-}
-
-.levelCard span {
-  display: block;
-
-  margin-bottom: 6px;
-
-  color: #7f8794;
-  font-size: 11px;
-}
-
-.levelCard strong {
-  font-size: 19px;
-}
-
 /* =========================
-   AI判定
+   反転候補
 ========================= */
 
-.signalCard,
-.backtestCard,
-.signalsList {
+.signalCard {
   margin-top: 10px;
-
-  padding: 14px;
-
-  background: #11151c;
-
-  border: 1px solid #252b35;
-  border-radius: 9px;
 }
 
-h2 {
-  margin: 0 0 12px;
-
-  font-size: 15px;
-}
-
-#signalResult {
-  color: #b7bec8;
+#signals {
+  color: #b8c0ca;
   font-size: 13px;
-}
-
-/* =========================
-   シグナル
-========================= */
-
-.signalBuy,
-.signalSell,
-.signalWait {
-  padding: 11px;
-  margin-top: 7px;
-
-  border-radius: 7px;
-
-  font-size: 12px;
-}
-
-.signalBuy {
-  background: #10251b;
-  border-left: 3px solid #2be589;
-}
-
-.signalSell {
-  background: #291719;
-  border-left: 3px solid #ff6262;
-}
-
-.signalWait {
-  background: #191d24;
-  border-left: 3px solid #6d7581;
 }
 
 /* =========================
@@ -360,7 +285,9 @@ h2 {
 
 .backtestGrid {
   display: grid;
+
   grid-template-columns: repeat(4, 1fr);
+
   gap: 8px;
 }
 
@@ -368,16 +295,18 @@ h2 {
   padding: 10px;
 
   background: #181d25;
+
   border-radius: 7px;
 }
 
 .backtestGrid span {
   display: block;
 
-  color: #7f8794;
-  font-size: 11px;
-
   margin-bottom: 5px;
+
+  color: #7f8895;
+
+  font-size: 11px;
 }
 
 .backtestGrid strong {
@@ -390,8 +319,8 @@ h2 {
 
 @media (max-width: 700px) {
 
-  .topbar {
-    padding: 0 12px;
+  main {
+    padding: 8px;
   }
 
   .dashboard {
@@ -402,29 +331,16 @@ h2 {
     grid-template-columns: 1fr 1fr;
   }
 
-  .toolbar {
-    overflow-x: auto;
-  }
-
-  button {
-    white-space: nowrap;
-  }
-
-  .chartArea {
-    height: 430px;
-  }
-
-  .chartScroll {
-    height: 430px;
-  }
-
+  .chartArea,
+  .chartScroll,
   #chartCanvas {
     height: 430px;
   }
 
   .priceAxis {
-    flex-basis: 76px;
     width: 76px;
+    flex-basis: 76px;
     height: 430px;
   }
+
 }
