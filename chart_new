@@ -1,0 +1,2176 @@
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbwh5D_62VC0fGY4PdgUyYNbp1lRPqbw2AcNgr8GQCNXeLLLYKcTnBLhxkK_XLgzROfjvw/exec";
+
+const canvas = document.getElementById("chartCanvas");
+const ctx = canvas.getContext("2d");
+
+const chartScroll =
+  document.getElementById("chartScroll");
+
+const priceAxis =
+  document.getElementById("priceAxis");
+
+const loadButton =
+  document.getElementById("loadButton");
+
+const clearLineButton =
+  document.getElementById("clearLineButton");
+
+let candles = [];
+let trendlinePoints = [];
+
+let autoUpdateTimer = null;
+
+const VISIBLE_CANDLES = 80;
+const CANDLE_WIDTH = 13;
+
+const CHART_TOP = 18;
+const CHART_BOTTOM = 34;
+
+const PRICE_STEP = 0.5;
+
+
+/* ==================================================
+   初期状態
+================================================== */
+
+setStatus("待機中", false);
+
+
+/* ==================================================
+   データ更新ボタン
+================================================== */
+
+if (loadButton) {
+
+  loadButton.addEventListener(
+    "click",
+    function () {
+      loadData();
+    }
+  );
+
+}
+
+
+/* ==================================================
+   データ取得
+================================================== */
+
+async function loadData() {
+
+  setStatus("取得中", false);
+
+  const alertMessage =
+    document.getElementById("alertMessage");
+
+  if (alertMessage) {
+    alertMessage.textContent =
+      "データ取得中...";
+  }
+
+  try {
+
+    const url =
+      API_URL +
+      "?pair=USDJPY" +
+      "&t=" +
+      Date.now();
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+
+    const json =
+      await response.json();
+
+
+    const rawData =
+      extractPriceData(json);
+
+
+    const normalized =
+      normalizeData(rawData);
+
+
+    if (
+      normalized.length < 5
+    ) {
+
+      throw new Error(
+        "価格データが5本未満です"
+      );
+
+    }
+
+
+    candles =
+      normalized;
+
+
+    setStatus(
+      "接続中",
+      true
+    );
+
+
+    if (alertMessage) {
+      alertMessage.textContent =
+        "データ取得完了";
+    }
+
+
+    updateDashboard();
+
+    drawChart();
+
+
+    startAutoUpdate();
+
+
+  }
+  catch (error) {
+
+    console.error(
+      "データ取得エラー:",
+      error
+    );
+
+
+    setStatus(
+      "エラー",
+      false
+    );
+
+
+    if (alertMessage) {
+
+      alertMessage.textContent =
+        "データ取得エラー";
+
+    }
+
+  }
+
+}
+
+
+/* ==================================================
+   APIレスポンスから価格データを探す
+================================================== */
+
+function extractPriceData(json) {
+
+  if (
+    Array.isArray(json)
+  ) {
+
+    return json;
+
+  }
+
+
+  if (
+    json &&
+    Array.isArray(json.values)
+  ) {
+
+    return json.values;
+
+  }
+
+
+  if (
+    json &&
+    Array.isArray(json.data)
+  ) {
+
+    return json.data;
+
+  }
+
+
+  if (
+    json &&
+    json.data &&
+    Array.isArray(json.data.values)
+  ) {
+
+    return json.data.values;
+
+  }
+
+
+  if (
+    json &&
+    Array.isArray(json.candles)
+  ) {
+
+    return json.candles;
+
+  }
+
+
+  return [];
+
+}
+
+
+/* ==================================================
+   価格データ整形
+================================================== */
+
+function normalizeData(data) {
+
+  const result = [];
+
+
+  for (
+    let i = 0;
+    i < data.length;
+    i++
+  ) {
+
+    const item =
+      data[i];
+
+
+    if (!item) {
+      continue;
+    }
+
+
+    let open;
+    let high;
+    let low;
+    let close;
+    let datetime;
+
+
+    /*
+      オブジェクト形式
+    */
+
+    if (
+      typeof item === "object" &&
+      !Array.isArray(item)
+    ) {
+
+      open =
+        Number(
+          item.open ??
+          item.Open ??
+          item.OPEN
+        );
+
+
+      high =
+        Number(
+          item.high ??
+          item.High ??
+          item.HIGH
+        );
+
+
+      low =
+        Number(
+          item.low ??
+          item.Low ??
+          item.LOW
+        );
+
+
+      close =
+        Number(
+          item.close ??
+          item.Close ??
+          item.CLOSE ??
+          item.price ??
+          item.Price
+        );
+
+
+      datetime =
+        item.datetime ??
+        item.date ??
+        item.time ??
+        item.timestamp ??
+        "";
+
+    }
+
+
+    /*
+      配列形式
+      [日時, Open, High, Low, Close]
+    */
+
+    else if (
+      Array.isArray(item)
+    ) {
+
+      datetime =
+        item[0];
+
+      open =
+        Number(item[1]);
+
+      high =
+        Number(item[2]);
+
+      low =
+        Number(item[3]);
+
+      close =
+        Number(item[4]);
+
+    }
+
+
+    if (
+      Number.isFinite(open) &&
+      Number.isFinite(high) &&
+      Number.isFinite(low) &&
+      Number.isFinite(close)
+    ) {
+
+      result.push({
+
+        datetime:
+          String(datetime),
+
+        open:
+          open,
+
+        high:
+          high,
+
+        low:
+          low,
+
+        close:
+          close
+
+      });
+
+    }
+
+  }
+
+
+  /*
+    古い順に統一
+  */
+
+  if (
+    result.length >= 2
+  ) {
+
+    const first =
+      result[0].datetime;
+
+    const last =
+      result[
+        result.length - 1
+      ].datetime;
+
+
+    if (
+      first &&
+      last &&
+      first > last
+    ) {
+
+      result.reverse();
+
+    }
+
+  }
+
+
+  return result;
+
+}
+
+
+/* ==================================================
+   ステータス
+================================================== */
+
+function setStatus(
+  text,
+  online
+) {
+
+  const element =
+    document.getElementById(
+      "marketStatus"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    text;
+
+
+  element.className =
+    online
+      ? "status online"
+      : "status";
+
+}
+
+
+/* ==================================================
+   自動更新
+================================================== */
+
+function startAutoUpdate() {
+
+  if (
+    autoUpdateTimer !== null
+  ) {
+
+    return;
+
+  }
+
+
+  autoUpdateTimer =
+    setInterval(
+      function () {
+
+        loadData();
+
+      },
+      60000
+    );
+
+}
+
+
+/* ==================================================
+   ダッシュボード
+================================================== */
+
+function updateDashboard() {
+
+  if (
+    candles.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  const latest =
+    candles[
+      candles.length - 1
+    ];
+
+
+  const current =
+    latest.close;
+
+
+  setText(
+    "currentPrice",
+    current.toFixed(3)
+  );
+
+
+  const trend =
+    calculateTrend();
+
+
+  setText(
+    "trend",
+    trend
+  );
+
+
+  const rsi =
+    calculateRSI();
+
+
+  setText(
+    "rsi",
+    rsi === null
+      ? "---"
+      : rsi.toFixed(1)
+  );
+
+
+  const levels =
+    calculateSupportResistance();
+
+
+  setText(
+    "support",
+    levels.support.toFixed(3)
+  );
+
+
+  setText(
+    "resistance",
+    levels.resistance.toFixed(3)
+  );
+
+
+  const decision =
+    calculateDecision(
+      trend,
+      rsi
+    );
+
+
+  setText(
+    "decision",
+    decision
+  );
+
+
+  const signals =
+    findReversalSignals();
+
+
+  showSignals(
+    signals
+  );
+
+
+  const backtest =
+    runBacktest();
+
+
+  setText(
+    "signalCount",
+    backtest.candidates
+  );
+
+
+  setText(
+    "winCount",
+    backtest.wins
+  );
+
+
+  setText(
+    "lossCount",
+    backtest.losses
+  );
+
+
+  setText(
+    "winRate",
+    backtest.rate.toFixed(1) +
+    "%"
+  );
+
+
+  checkTrendlineAlert(
+    current
+  );
+
+}
+
+
+/* ==================================================
+   テキスト表示
+================================================== */
+
+function setText(
+  id,
+  value
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (element) {
+
+    element.textContent =
+      value;
+
+  }
+
+}
+
+
+/* ==================================================
+   トレンド
+================================================== */
+
+function calculateTrend() {
+
+  if (
+    candles.length < 10
+  ) {
+
+    return "---";
+
+  }
+
+
+  const latest =
+    candles[
+      candles.length - 1
+    ].close;
+
+
+  const previous =
+    candles[
+      candles.length - 10
+    ].close;
+
+
+  const difference =
+    latest -
+    previous;
+
+
+  if (
+    difference > 0.03
+  ) {
+
+    return "上昇";
+
+  }
+
+
+  if (
+    difference < -0.03
+  ) {
+
+    return "下降";
+
+  }
+
+
+  return "横ばい";
+
+}
+
+
+/* ==================================================
+   RSI
+================================================== */
+
+function calculateRSI() {
+
+  if (
+    candles.length < 15
+  ) {
+
+    return null;
+
+  }
+
+
+  return calculateRSIAt(
+    candles.length - 1
+  );
+
+}
+
+
+/* ==================================================
+   過去時点RSI
+================================================== */
+
+function calculateRSIAt(
+  index
+) {
+
+  const period = 14;
+
+
+  if (
+    index < period
+  ) {
+
+    return null;
+
+  }
+
+
+  let gain = 0;
+  let loss = 0;
+
+
+  for (
+    let i =
+      index - period + 1;
+
+    i <= index;
+
+    i++
+  ) {
+
+    const change =
+      candles[i].close -
+      candles[i - 1].close;
+
+
+    if (
+      change > 0
+    ) {
+
+      gain += change;
+
+    }
+    else {
+
+      loss -= change;
+
+    }
+
+  }
+
+
+  gain /=
+    period;
+
+
+  loss /=
+    period;
+
+
+  if (
+    loss === 0
+  ) {
+
+    return 100;
+
+  }
+
+
+  const rs =
+    gain / loss;
+
+
+  return (
+    100 -
+    (
+      100 /
+      (1 + rs)
+    )
+  );
+
+}
+
+
+/* ==================================================
+   サポート・レジスタンス
+================================================== */
+
+function calculateSupportResistance() {
+
+  const recent =
+    candles.slice(-30);
+
+
+  let support =
+    Infinity;
+
+
+  let resistance =
+    -Infinity;
+
+
+  for (
+    const candle of recent
+  ) {
+
+    if (
+      candle.low <
+      support
+    ) {
+
+      support =
+        candle.low;
+
+    }
+
+
+    if (
+      candle.high >
+      resistance
+    ) {
+
+      resistance =
+        candle.high;
+
+    }
+
+  }
+
+
+  return {
+
+    support:
+      support,
+
+    resistance:
+      resistance
+
+  };
+
+}
+
+
+/* ==================================================
+   判定
+================================================== */
+
+function calculateDecision(
+  trend,
+  rsi
+) {
+
+  if (
+    rsi !== null &&
+    rsi <= 30
+  ) {
+
+    return "買い候補";
+
+  }
+
+
+  if (
+    rsi !== null &&
+    rsi >= 70
+  ) {
+
+    return "売り候補";
+
+  }
+
+
+  if (
+    trend === "上昇"
+  ) {
+
+    return "上昇";
+
+  }
+
+
+  if (
+    trend === "下降"
+  ) {
+
+    return "下降";
+
+  }
+
+
+  return "様子見";
+
+}
+
+
+/* ==================================================
+   反転候補
+================================================== */
+
+function findReversalSignals() {
+
+  const result = [];
+
+
+  if (
+    candles.length < 15
+  ) {
+
+    return result;
+
+  }
+
+
+  const latest =
+    candles[
+      candles.length - 1
+    ];
+
+
+  const previous =
+    candles[
+      candles.length - 2
+    ];
+
+
+  const rsi =
+    calculateRSI();
+
+
+  if (
+    rsi !== null &&
+    rsi <= 30 &&
+    latest.close >
+    previous.close
+  ) {
+
+    result.push(
+      "🟢 RSI売られすぎからの反発候補"
+    );
+
+  }
+
+
+  if (
+    rsi !== null &&
+    rsi >= 70 &&
+    latest.close <
+    previous.close
+  ) {
+
+    result.push(
+      "🔴 RSI買われすぎからの反落候補"
+    );
+
+  }
+
+
+  return result;
+
+}
+
+
+/* ==================================================
+   反転候補表示
+================================================== */
+
+function showSignals(
+  signals
+) {
+
+  const box =
+    document.getElementById(
+      "signals"
+    );
+
+
+  if (!box) {
+    return;
+  }
+
+
+  if (
+    !signals ||
+    signals.length === 0
+  ) {
+
+    box.textContent =
+      "現在、強い反転候補なし";
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+    signals
+      .map(
+        function (signal) {
+
+          return (
+            "<div>" +
+            signal +
+            "</div>"
+          );
+
+        }
+      )
+      .join("");
+
+}
+
+
+/* ==================================================
+   過去検証
+==================================================
+
+   ルール
+
+   買い候補:
+   RSI <= 30
+
+   売り候補:
+   RSI >= 70
+
+   判定:
+   3本後の終値が予想方向なら成功
+
+   ※これは診断用の簡易バックテスト
+================================================== */
+
+function runBacktest() {
+
+  let candidates = 0;
+  let wins = 0;
+  let losses = 0;
+
+
+  const futureBars = 3;
+
+
+  if (
+    candles.length <
+    20 + futureBars
+  ) {
+
+    return {
+
+      candidates:
+        0,
+
+      wins:
+        0,
+
+      losses:
+        0,
+
+      rate:
+        0
+
+    };
+
+  }
+
+
+  for (
+    let i = 14;
+
+    i <
+    candles.length -
+    futureBars;
+
+    i++
+  ) {
+
+    const rsi =
+      calculateRSIAt(i);
+
+
+    if (
+      rsi === null
+    ) {
+
+      continue;
+
+    }
+
+
+    const entry =
+      candles[i].close;
+
+
+    const future =
+      candles[
+        i + futureBars
+      ].close;
+
+
+    /*
+      買い候補
+    */
+
+    if (
+      rsi <= 30
+    ) {
+
+      candidates++;
+
+
+      if (
+        future > entry
+      ) {
+
+        wins++;
+
+      }
+      else {
+
+        losses++;
+
+      }
+
+
+      continue;
+
+    }
+
+
+    /*
+      売り候補
+    */
+
+    if (
+      rsi >= 70
+    ) {
+
+      candidates++;
+
+
+      if (
+        future < entry
+      ) {
+
+        wins++;
+
+      }
+      else {
+
+        losses++;
+
+      }
+
+    }
+
+  }
+
+
+  const rate =
+    candidates > 0
+      ? (
+          wins /
+          candidates
+        ) *
+        100
+      : 0;
+
+
+  return {
+
+    candidates:
+      candidates,
+
+    wins:
+      wins,
+
+    losses:
+      losses,
+
+    rate:
+      rate
+
+  };
+
+}
+
+
+/* ==================================================
+   チャート描画
+================================================== */
+
+function drawChart() {
+
+  if (
+    candles.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  const visible =
+    candles.slice(
+      -VISIBLE_CANDLES
+    );
+
+
+  const chartHeight =
+    chartScroll.clientHeight ||
+    520;
+
+
+  const chartWidth =
+    Math.max(
+      500,
+      visible.length *
+      CANDLE_WIDTH
+    );
+
+
+  canvas.width =
+    chartWidth;
+
+
+  canvas.height =
+    chartHeight;
+
+
+  ctx.clearRect(
+    0,
+    0,
+    chartWidth,
+    chartHeight
+  );
+
+
+  ctx.fillStyle =
+    "#0a0d12";
+
+
+  ctx.fillRect(
+    0,
+    0,
+    chartWidth,
+    chartHeight
+  );
+
+
+  let rawMin =
+    Math.min(
+      ...visible.map(
+        function (c) {
+          return c.low;
+        }
+      )
+    );
+
+
+  let rawMax =
+    Math.max(
+      ...visible.map(
+        function (c) {
+          return c.high;
+        }
+      )
+    );
+
+
+  let min =
+    Math.floor(
+      rawMin /
+      PRICE_STEP
+    ) *
+    PRICE_STEP;
+
+
+  let max =
+    Math.ceil(
+      rawMax /
+      PRICE_STEP
+    ) *
+    PRICE_STEP;
+
+
+  min -=
+    PRICE_STEP;
+
+
+  max +=
+    PRICE_STEP;
+
+
+  const range =
+    max - min;
+
+
+  const innerHeight =
+    chartHeight -
+    CHART_TOP -
+    CHART_BOTTOM;
+
+
+  function priceToY(
+    price
+  ) {
+
+    return (
+      CHART_TOP +
+      (
+        max - price
+      ) /
+      range *
+      innerHeight
+    );
+
+  }
+
+
+  function candleX(
+    index
+  ) {
+
+    return (
+      index *
+      CANDLE_WIDTH +
+      CANDLE_WIDTH / 2
+    );
+
+  }
+
+
+  /*
+    価格グリッド
+  */
+
+  ctx.strokeStyle =
+    "#202631";
+
+
+  ctx.lineWidth =
+    1;
+
+
+  for (
+    let price = min;
+
+    price <= max + 0.001;
+
+    price += PRICE_STEP
+  ) {
+
+    const y =
+      priceToY(
+        price
+      );
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      chartWidth,
+      y
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  /*
+    ローソク足
+  */
+
+  visible.forEach(
+    function (
+      candle,
+      index
+    ) {
+
+      const x =
+        candleX(index);
+
+
+      const highY =
+        priceToY(
+          candle.high
+        );
+
+
+      const lowY =
+        priceToY(
+          candle.low
+        );
+
+
+      const openY =
+        priceToY(
+          candle.open
+        );
+
+
+      const closeY =
+        priceToY(
+          candle.close
+        );
+
+
+      const bullish =
+        candle.close >=
+        candle.open;
+
+
+      const bodyTop =
+        Math.min(
+          openY,
+          closeY
+        );
+
+
+      const bodyHeight =
+        Math.max(
+          3,
+          Math.abs(
+            openY -
+            closeY
+          )
+        );
+
+
+      ctx.strokeStyle =
+        bullish
+          ? "#35d98b"
+          : "#ff5f67";
+
+
+      ctx.fillStyle =
+        bullish
+          ? "#35d98b"
+          : "#ff5f67";
+
+
+      ctx.lineWidth =
+        1.5;
+
+
+      /*
+        ヒゲ
+      */
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        x,
+        highY
+      );
+
+      ctx.lineTo(
+        x,
+        lowY
+      );
+
+      ctx.stroke();
+
+
+      /*
+        本体
+      */
+
+      ctx.fillRect(
+        x - 4,
+        bodyTop,
+        8,
+        bodyHeight
+      );
+
+    }
+  );
+
+
+  /*
+    現在値ライン
+  */
+
+  const current =
+    candles[
+      candles.length - 1
+    ].close;
+
+
+  const currentY =
+    priceToY(
+      current
+    );
+
+
+  ctx.strokeStyle =
+    "#e7c75a";
+
+
+  ctx.setLineDash([
+    6,
+    5
+  ]);
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    0,
+    currentY
+  );
+
+  ctx.lineTo(
+    chartWidth,
+    currentY
+  );
+
+  ctx.stroke();
+
+
+  ctx.setLineDash([]);
+
+
+  /*
+    トレンドライン
+  */
+
+  drawTrendline(
+    visible,
+    priceToY,
+    candleX
+  );
+
+
+  /*
+    右側固定価格軸
+  */
+
+  drawPriceAxis(
+    min,
+    max,
+    current,
+    priceToY
+  );
+
+
+  /*
+    時刻
+  */
+
+  ctx.fillStyle =
+    "#707986";
+
+
+  ctx.font =
+    "11px Arial";
+
+
+  const labelStep =
+    Math.max(
+      1,
+      Math.floor(
+        visible.length /
+        6
+      )
+    );
+
+
+  for (
+    let i = 0;
+
+    i < visible.length;
+
+    i += labelStep
+  ) {
+
+    const label =
+      formatTime(
+        visible[i].datetime
+      );
+
+
+    ctx.fillText(
+      label,
+      candleX(i) - 15,
+      chartHeight - 10
+    );
+
+  }
+
+}
+
+
+/* ==================================================
+   トレンドライン描画
+================================================== */
+
+function drawTrendline(
+  visible,
+  priceToY,
+  candleX
+) {
+
+  if (
+    trendlinePoints.length !== 2
+  ) {
+
+    return;
+
+  }
+
+
+  const visibleStart =
+    candles.length -
+    visible.length;
+
+
+  const start =
+    trendlinePoints[0];
+
+
+  const end =
+    trendlinePoints[1];
+
+
+  const x1 =
+    candleX(
+      start.index -
+      visibleStart
+    );
+
+
+  const x2 =
+    candleX(
+      end.index -
+      visibleStart
+    );
+
+
+  const y1 =
+    priceToY(
+      start.price
+    );
+
+
+  const y2 =
+    priceToY(
+      end.price
+    );
+
+
+  ctx.strokeStyle =
+    "#ffffff";
+
+
+  ctx.lineWidth =
+    2;
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    x1,
+    y1
+  );
+
+  ctx.lineTo(
+    x2,
+    y2
+  );
+
+  ctx.stroke();
+
+
+  /*
+    右方向へ延長
+  */
+
+  if (
+    end.index !==
+    start.index
+  ) {
+
+    const slope =
+      (
+        end.price -
+        start.price
+      ) /
+      (
+        end.index -
+        start.index
+      );
+
+
+    const latestIndex =
+      candles.length - 1;
+
+
+    const futurePrice =
+      start.price +
+      slope *
+      (
+        latestIndex -
+        start.index
+      );
+
+
+    const futureY =
+      priceToY(
+        futurePrice
+      );
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x2,
+      y2
+    );
+
+    ctx.lineTo(
+      candleX(
+        visible.length - 1
+      ),
+      futureY
+    );
+
+    ctx.stroke();
+
+  }
+
+}
+
+
+/* ==================================================
+   固定価格軸
+================================================== */
+
+function drawPriceAxis(
+  min,
+  max,
+  current,
+  priceToY
+) {
+
+  if (!priceAxis) {
+    return;
+  }
+
+
+  priceAxis.innerHTML =
+    "";
+
+
+  for (
+    let price = min;
+
+    price <= max + 0.001;
+
+    price += PRICE_STEP
+  ) {
+
+    const y =
+      priceToY(
+        price
+      );
+
+
+    /*
+      グリッド
+    */
+
+    const grid =
+      document.createElement(
+        "div"
+      );
+
+
+    grid.className =
+      "priceGrid";
+
+
+    grid.style.top =
+      y + "px";
+
+
+    priceAxis.appendChild(
+      grid
+    );
+
+
+    /*
+      数字
+    */
+
+    const label =
+      document.createElement(
+        "div"
+      );
+
+
+    label.className =
+      "priceLabel";
+
+
+    label.style.top =
+      y + "px";
+
+
+    label.textContent =
+      price.toFixed(3);
+
+
+    priceAxis.appendChild(
+      label
+    );
+
+  }
+
+
+  /*
+    現在値ラベル
+  */
+
+  const currentY =
+    priceToY(
+      current
+    );
+
+
+  const currentLabel =
+    document.createElement(
+      "div"
+    );
+
+
+  currentLabel.className =
+    "priceLabel current";
+
+
+  currentLabel.style.top =
+    currentY + "px";
+
+
+  currentLabel.textContent =
+    current.toFixed(3);
+
+
+  priceAxis.appendChild(
+    currentLabel
+  );
+
+}
+
+
+/* ==================================================
+   トレンドライン設定
+================================================== */
+
+canvas.addEventListener(
+  "click",
+  function (event) {
+
+    if (
+      candles.length === 0
+    ) {
+
+      return;
+
+    }
+
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+
+    const x =
+      event.clientX -
+      rect.left;
+
+
+    const visibleCount =
+      Math.min(
+        candles.length,
+        VISIBLE_CANDLES
+      );
+
+
+    const visibleStart =
+      candles.length -
+      visibleCount;
+
+
+    const index =
+      Math.floor(
+        x /
+        CANDLE_WIDTH
+      );
+
+
+    const actualIndex =
+      visibleStart +
+      index;
+
+
+    if (
+      actualIndex < 0 ||
+      actualIndex >= candles.length
+    ) {
+
+      return;
+
+    }
+
+
+    const candle =
+      candles[
+        actualIndex
+      ];
+
+
+    trendlinePoints.push({
+
+      index:
+        actualIndex,
+
+      price:
+        candle.close
+
+    });
+
+
+    if (
+      trendlinePoints.length > 2
+    ) {
+
+      trendlinePoints.shift();
+
+    }
+
+
+    const message =
+      document.getElementById(
+        "alertMessage"
+      );
+
+
+    if (
+      trendlinePoints.length === 1
+    ) {
+
+      if (message) {
+
+        message.textContent =
+          "1点目を設定しました";
+
+      }
+
+    }
+    else {
+
+      if (message) {
+
+        message.textContent =
+          "トレンドライン設定済み";
+
+      }
+
+    }
+
+
+    drawChart();
+
+    updateDashboard();
+
+  }
+);
+
+
+/* ==================================================
+   トレンドライン削除
+================================================== */
+
+if (
+  clearLineButton
+) {
+
+  clearLineButton.addEventListener(
+    "click",
+    function () {
+
+      trendlinePoints =
+        [];
+
+
+      const message =
+        document.getElementById(
+          "alertMessage"
+        );
+
+
+      if (message) {
+
+        message.textContent =
+          "待機中";
+
+      }
+
+
+      drawChart();
+
+    }
+  );
+
+}
+
+
+/* ==================================================
+   トレンドライン接近通知
+================================================== */
+
+function checkTrendlineAlert(
+  current
+) {
+
+  if (
+    trendlinePoints.length !== 2
+  ) {
+
+    return;
+
+  }
+
+
+  const start =
+    trendlinePoints[0];
+
+
+  const end =
+    trendlinePoints[1];
+
+
+  if (
+    start.index ===
+    end.index
+  ) {
+
+    return;
+
+  }
+
+
+  const latestIndex =
+    candles.length - 1;
+
+
+  const slope =
+    (
+      end.price -
+      start.price
+    ) /
+    (
+      end.index -
+      start.index
+    );
+
+
+  const linePrice =
+    start.price +
+    slope *
+    (
+      latestIndex -
+      start.index
+    );
+
+
+  const distance =
+    Math.abs(
+      current -
+      linePrice
+    );
+
+
+  const message =
+    document.getElementById(
+      "alertMessage"
+    );
+
+
+  /*
+    0.05円以内なら接近
+  */
+
+  if (
+    distance <= 0.05
+  ) {
+
+    if (message) {
+
+      message.textContent =
+        "⚠ トレンドライン接近";
+
+    }
+
+  }
+  else {
+
+    if (message) {
+
+      message.textContent =
+        "トレンドライン設定済み";
+
+    }
+
+  }
+
+}
+
+
+/* ==================================================
+   時刻表示
+================================================== */
+
+function formatTime(
+  value
+) {
+
+  if (!value) {
+    return "";
+  }
+
+
+  const text =
+    String(value);
+
+
+  if (
+    text.length >= 16
+  ) {
+
+    return text.slice(
+      -5
+    );
+
+  }
+
+
+  return text.slice(
+    -5
+  );
+
+}
+
+
+/* ==================================================
+   画面サイズ変更
+================================================== */
+
+window.addEventListener(
+  "resize",
+  function () {
+
+    if (
+      candles.length > 0
+    ) {
+
+      drawChart();
+
+    }
+
+  }
+);
