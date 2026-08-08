@@ -12,14 +12,18 @@
 <body>
 
 <header class="topbar">
+
   <div>
     <h1>FX Vision AI</h1>
-    <div class="subtitle">USD/JPY・1時間足</div>
+    <div class="subtitle">
+      USD/JPY ・ 1時間足
+    </div>
   </div>
 
   <div id="marketStatus" class="status offline">
     未接続
   </div>
+
 </header>
 
 
@@ -32,7 +36,11 @@
     </button>
 
     <button id="soundButton">
-      🔔 通知音 ON
+      🔔 通知音 OFF
+    </button>
+
+    <button id="clearLineButton">
+      ✕ ライン削除
     </button>
 
   </section>
@@ -55,7 +63,7 @@
       <strong id="rsi">---</strong>
     </div>
 
-    <div class="card">
+    <div class="card decisionCard">
       <span>判定</span>
       <strong id="decision">---</strong>
     </div>
@@ -65,19 +73,29 @@
 
   <section class="chartCard">
 
-    <div class="chartHeader">
+    <div class="chartTop">
+
       <div>
-        <h2>USD/JPY</h2>
+        <strong>USD/JPY</strong>
         <span>1時間足</span>
       </div>
 
       <div id="alertMessage">
         待機中
       </div>
+
     </div>
 
-    <div id="chartContainer">
+
+    <div class="chartViewport">
+
       <canvas id="chartCanvas"></canvas>
+
+    </div>
+
+
+    <div class="chartHelp">
+      チャートを2回タップ → トレンドライン設定
     </div>
 
   </section>
@@ -86,13 +104,24 @@
   <section class="levels">
 
     <div class="levelCard">
+
       <span>サポート</span>
-      <strong id="support">---</strong>
+
+      <strong id="support">
+        ---
+      </strong>
+
     </div>
 
+
     <div class="levelCard">
+
       <span>レジスタンス</span>
-      <strong id="resistance">---</strong>
+
+      <strong id="resistance">
+        ---
+      </strong>
+
     </div>
 
   </section>
@@ -100,7 +129,11 @@
 
   <section class="signalCard">
 
-    <h2>AI判定</h2>
+    <div class="sectionTitle">
+
+      <h2>AI判定</h2>
+
+    </div>
 
     <div id="signalResult">
       データを取得してください。
@@ -116,42 +149,34 @@
     <div class="backtestGrid">
 
       <div>
-        <span>候補数</span>
-        <strong id="signalCount">---</strong>
+        <span>候補</span>
+        <strong id="signalCount">
+          ---
+        </strong>
       </div>
 
       <div>
-        <span>成功数</span>
-        <strong id="winCount">---</strong>
+        <span>成功</span>
+        <strong id="winCount">
+          ---
+        </strong>
       </div>
 
       <div>
-        <span>失敗数</span>
-        <strong id="lossCount">---</strong>
+        <span>失敗</span>
+        <strong id="lossCount">
+          ---
+        </strong>
       </div>
 
       <div>
         <span>成功率</span>
-        <strong id="winRate">---</strong>
+        <strong id="winRate">
+          ---
+        </strong>
       </div>
 
     </div>
-
-  </section>
-
-
-  <section class="trendlineCard">
-
-    <h2>トレンドライン</h2>
-
-    <p>
-      チャート上をタップして2点を指定すると、
-      簡易トレンドラインを設定できます。
-    </p>
-
-    <button id="clearLineButton">
-      ラインを消す
-    </button>
 
   </section>
 
