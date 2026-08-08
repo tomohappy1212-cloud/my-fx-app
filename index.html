@@ -1,1065 +1,175 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>FX Vision AI</title>
+  <title>FX Vision AI</title>
 
-<style>
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  background:#101114;
-  color:#fff;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-
-header{
-  padding:20px;
-  background:#181a20;
-  border-bottom:1px solid #2b2e36;
-}
-
-h1{
-  margin:0;
-  font-size:24px;
-}
-
-.subtitle{
-  color:#999;
-  margin-top:5px;
-}
-
-main{
-  padding:16px;
-  max-width:900px;
-  margin:auto;
-}
-
-button{
-  width:100%;
-  padding:15px;
-  margin:6px 0;
-  border:0;
-  border-radius:10px;
-  background:#fff;
-  color:#111;
-  font-size:16px;
-  font-weight:bold;
-}
-
-button:active{
-  transform:scale(.98);
-}
-
-.card{
-  background:#181a20;
-  border:1px solid #2b2e36;
-  border-radius:12px;
-  padding:16px;
-  margin-top:14px;
-}
-
-.success{
-  border-left:4px solid #20d080;
-}
-
-.error{
-  border-left:4px solid #ff5050;
-}
-
-.metric{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.metric div{
-  background:#22252d;
-  padding:12px;
-  border-radius:8px;
-}
-
-.metric span{
-  display:block;
-  color:#999;
-  font-size:12px;
-  margin-bottom:5px;
-}
-
-.metric strong{
-  font-size:18px;
-}
-
-.signal{
-  padding:14px;
-  margin-top:10px;
-  border-radius:10px;
-  background:#22252d;
-}
-
-.buy{
-  border-left:5px solid #20d080;
-}
-
-.sell{
-  border-left:5px solid #ff5050;
-}
-
-.buy strong{
-  color:#20d080;
-}
-
-.sell strong{
-  color:#ff5050;
-}
-
-.small{
-  color:#888;
-  font-size:12px;
-  margin-top:8px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
-}
-
-th,td{
-  padding:8px;
-  border-bottom:1px solid #333;
-  text-align:right;
-}
-
-th:first-child,
-td:first-child{
-  text-align:left;
-}
-
-#chart{
-  width:100%;
-  height:300px;
-  overflow-x:auto;
-  background:#111;
-  border-radius:10px;
-}
-
-canvas{
-  display:block;
-}
-
-</style>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-<header>
+<header class="topbar">
+  <div>
+    <h1>FX Vision AI</h1>
+    <div class="subtitle">USD/JPY・1時間足</div>
+  </div>
 
-<h1>FX Vision AI</h1>
-
-<div class="subtitle">
-USD/JPY ・ 1時間足
-</div>
-
+  <div id="marketStatus" class="status offline">
+    未接続
+  </div>
 </header>
 
 
 <main>
 
-<button id="loadButton">
-📊 価格データを取得
-</button>
+  <section class="toolbar">
+
+    <button id="loadButton">
+      📊 データ更新
+    </button>
+
+    <button id="soundButton">
+      🔔 通知音 ON
+    </button>
+
+  </section>
 
 
-<div id="status" class="card">
+  <section class="dashboard">
 
-まだデータを取得していません。
+    <div class="card">
+      <span>現在値</span>
+      <strong id="currentPrice">---</strong>
+    </div>
 
-</div>
+    <div class="card">
+      <span>トレンド</span>
+      <strong id="trend">---</strong>
+    </div>
 
+    <div class="card">
+      <span>RSI</span>
+      <strong id="rsi">---</strong>
+    </div>
 
-<div id="summary" class="card">
+    <div class="card">
+      <span>判定</span>
+      <strong id="decision">---</strong>
+    </div>
 
-<h2>📈 市場データ</h2>
-
-<div class="metric">
-
-<div>
-<span>現在値</span>
-<strong id="current">---</strong>
-</div>
-
-<div>
-<span>データ本数</span>
-<strong id="count">---</strong>
-</div>
-
-<div>
-<span>最高値</span>
-<strong id="high">---</strong>
-</div>
-
-<div>
-<span>最安値</span>
-<strong id="low">---</strong>
-</div>
-
-</div>
-
-</div>
+  </section>
 
 
-<div class="card">
+  <section class="chartCard">
 
-<h2>📉 チャート</h2>
+    <div class="chartHeader">
+      <div>
+        <h2>USD/JPY</h2>
+        <span>1時間足</span>
+      </div>
 
-<div id="chart">
+      <div id="alertMessage">
+        待機中
+      </div>
+    </div>
 
-<canvas id="canvas"></canvas>
+    <div id="chartContainer">
+      <canvas id="chartCanvas"></canvas>
+    </div>
 
-</div>
-
-</div>
-
-
-<div id="signals" class="card">
-
-<h2>🔎 反転候補</h2>
-
-<p class="small">
-価格データから機械的に抽出した過去の反転候補です。
-</p>
-
-<div id="signalList">
-まだ分析していません。
-</div>
-
-</div>
+  </section>
 
 
-<div id="backtest" class="card">
+  <section class="levels">
 
-<h2>🧪 過去検証</h2>
+    <div class="levelCard">
+      <span>サポート</span>
+      <strong id="support">---</strong>
+    </div>
 
-<div class="metric">
+    <div class="levelCard">
+      <span>レジスタンス</span>
+      <strong id="resistance">---</strong>
+    </div>
 
-<div>
-<span>反転候補数</span>
-<strong id="totalSignals">---</strong>
-</div>
-
-<div>
-<span>成功数</span>
-<strong id="wins">---</strong>
-</div>
-
-<div>
-<span>成功率</span>
-<strong id="winRate">---</strong>
-</div>
-
-<div>
-<span>失敗数</span>
-<strong id="losses">---</strong>
-</div>
-
-</div>
-
-<p class="small">
-成功判定：反転候補の後、2本以内に
-0.10円以上有利な方向へ動いた場合。
-これは単純化した検証条件です。
-</p>
-
-</div>
+  </section>
 
 
-<div class="card">
+  <section class="signalCard">
 
-<h2>🕐 最新データ</h2>
+    <h2>AI判定</h2>
 
-<div id="latestTable">
-まだありません。
-</div>
+    <div id="signalResult">
+      データを取得してください。
+    </div>
 
-</div>
+  </section>
 
+
+  <section class="backtestCard">
+
+    <h2>過去検証</h2>
+
+    <div class="backtestGrid">
+
+      <div>
+        <span>候補数</span>
+        <strong id="signalCount">---</strong>
+      </div>
+
+      <div>
+        <span>成功数</span>
+        <strong id="winCount">---</strong>
+      </div>
+
+      <div>
+        <span>失敗数</span>
+        <strong id="lossCount">---</strong>
+      </div>
+
+      <div>
+        <span>成功率</span>
+        <strong id="winRate">---</strong>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section class="trendlineCard">
+
+    <h2>トレンドライン</h2>
+
+    <p>
+      チャート上をタップして2点を指定すると、
+      簡易トレンドラインを設定できます。
+    </p>
+
+    <button id="clearLineButton">
+      ラインを消す
+    </button>
+
+  </section>
+
+
+  <section class="signalsList">
+
+    <h2>反転候補</h2>
+
+    <div id="signals"></div>
+
+  </section>
 
 </main>
 
 
-<script>
-
-
-/*
-==================================================
-Google Apps Script
-==================================================
-*/
-
-const API_URL =
-"https://script.google.com/macros/s/AKfycbwh5D_62VC0fGY4PdgUyYNbp1lRPqbw2AcNgr8GQCNXeLLLYKcTnBLhxkK_XLgzROfjvw/exec";
-
-
-/*
-==================================================
-DOM
-==================================================
-*/
-
-const loadButton =
-document.getElementById("loadButton");
-
-const status =
-document.getElementById("status");
-
-const current =
-document.getElementById("current");
-
-const count =
-document.getElementById("count");
-
-const high =
-document.getElementById("high");
-
-const low =
-document.getElementById("low");
-
-const signalList =
-document.getElementById("signalList");
-
-const totalSignals =
-document.getElementById("totalSignals");
-
-const wins =
-document.getElementById("wins");
-
-const losses =
-document.getElementById("losses");
-
-const winRate =
-document.getElementById("winRate");
-
-const latestTable =
-document.getElementById("latestTable");
-
-const canvas =
-document.getElementById("canvas");
-
-const ctx =
-canvas.getContext("2d");
-
-
-/*
-==================================================
-データ取得
-==================================================
-*/
-
-loadButton.addEventListener(
-"click",
-loadData
-);
-
-
-async function loadData(){
-
-  status.className="card";
-
-  status.textContent=
-  "⏳ 価格データを取得しています……";
-
-  signalList.innerHTML=
-  "分析中……";
-
-
-  try{
-
-    const response =
-    await fetch(API_URL);
-
-
-    if(!response.ok){
-
-      throw new Error(
-        "HTTPエラー " +
-        response.status
-      );
-
-    }
-
-
-    const data =
-    await response.json();
-
-
-    if(data.status==="error"){
-
-      throw new Error(
-        data.message ||
-        "Twelve Data APIエラー"
-      );
-
-    }
-
-
-    if(
-      !data.values ||
-      !Array.isArray(data.values)
-    ){
-
-      throw new Error(
-        "価格データがありません。"
-      );
-
-    }
-
-
-    if(data.values.length<5){
-
-      throw new Error(
-        "分析に必要なデータが不足しています。"
-      );
-
-    }
-
-
-    /*
-    新しい順
-    ↓
-    古い順
-    */
-
-    const candles =
-    data.values
-    .map(function(x){
-
-      return {
-
-        datetime:x.datetime,
-
-        open:Number(x.open),
-
-        high:Number(x.high),
-
-        low:Number(x.low),
-
-        close:Number(x.close)
-
-      };
-
-    })
-    .reverse();
-
-
-    /*
-    数値チェック
-    */
-
-    const valid =
-    candles.filter(function(x){
-
-      return Number.isFinite(x.open) &&
-             Number.isFinite(x.high) &&
-             Number.isFinite(x.low) &&
-             Number.isFinite(x.close);
-
-    });
-
-
-    if(valid.length<5){
-
-      throw new Error(
-        "有効な価格データがありません。"
-      );
-
-    }
-
-
-    status.className=
-    "card success";
-
-    status.innerHTML=
-    "✅ データ取得成功<br><br>" +
-    "USD/JPY 1時間足<br>" +
-    valid.length +
-    "本のデータを取得しました。";
-
-
-    /*
-    基本情報
-    */
-
-    const latest =
-    valid[valid.length-1];
-
-
-    current.textContent=
-    latest.close.toFixed(5);
-
-
-    count.textContent=
-    valid.length;
-
-
-    const highs =
-    valid.map(x=>x.high);
-
-    const lows =
-    valid.map(x=>x.low);
-
-
-    high.textContent=
-    Math.max(...highs).toFixed(5);
-
-
-    low.textContent=
-    Math.min(...lows).toFixed(5);
-
-
-    /*
-    チャート
-    */
-
-    drawChart(valid);
-
-
-    /*
-    反転候補
-    */
-
-    const signals =
-    findReversals(valid);
-
-
-    showSignals(signals);
-
-
-    /*
-    バックテスト
-    */
-
-    runBacktest(
-      valid,
-      signals
-    );
-
-
-    /*
-    最新データ
-    */
-
-    showLatest(valid);
-
-
-  }
-  catch(error){
-
-    status.className=
-    "card error";
-
-    status.innerHTML=
-    "❌ エラー<br><br>" +
-    escapeHTML(error.message);
-
-
-    signalList.innerHTML=
-    "分析できませんでした。";
-
-  }
-
-}
-
-
-/*
-==================================================
-反転候補
-==================================================
-*/
-
-function findReversals(candles){
-
-  const result=[];
-
-
-  for(
-    let i=2;
-    i<candles.length-2;
-    i++
-  ){
-
-    const a =
-    candles[i-2];
-
-    const b =
-    candles[i-1];
-
-    const c =
-    candles[i];
-
-    const d =
-    candles[i+1];
-
-    const e =
-    candles[i+2];
-
-
-    /*
-    上昇反転
-
-    現在の安値が
-    前2本より低く、
-
-    その後2本で
-    高くなっている
-    */
-
-    if(
-      c.low < a.low &&
-      c.low < b.low &&
-      d.close > c.close &&
-      e.close > d.close
-    ){
-
-      result.push({
-
-        type:"buy",
-
-        datetime:c.datetime,
-
-        price:c.close,
-
-        entry:c.close,
-
-        exit:e.close,
-
-        move:e.close-c.close
-
-      });
-
-    }
-
-
-    /*
-    下落反転
-    */
-
-    if(
-      c.high > a.high &&
-      c.high > b.high &&
-      d.close < c.close &&
-      e.close < d.close
-    ){
-
-      result.push({
-
-        type:"sell",
-
-        datetime:c.datetime,
-
-        price:c.close,
-
-        entry:c.close,
-
-        exit:e.close,
-
-        move:c.close-e.close
-
-      });
-
-    }
-
-  }
-
-
-  return result;
-
-}
-
-
-/*
-==================================================
-反転候補表示
-==================================================
-*/
-
-function showSignals(signals){
-
-  if(signals.length===0){
-
-    signalList.innerHTML=
-    "反転候補は見つかりませんでした。";
-
-    return;
-
-  }
-
-
-  let html="";
-
-
-  signals
-  .slice(-20)
-  .reverse()
-  .forEach(function(s){
-
-    const isBuy =
-    s.type==="buy";
-
-
-    const label =
-    isBuy
-    ? "🟢 上昇反転候補"
-    : "🔴 下落反転候補";
-
-
-    html +=
-
-    "<div class='signal " +
-    (isBuy?"buy":"sell") +
-    "'>" +
-
-    "<strong>" +
-    label +
-    "</strong>" +
-
-    "<br><br>" +
-
-    "日時： " +
-    escapeHTML(s.datetime) +
-
-    "<br>" +
-
-    "価格： " +
-    s.price.toFixed(5) +
-
-    "<br>" +
-
-    "その後の値動き： " +
-    s.move.toFixed(5) +
-
-    "</div>";
-
-  });
-
-
-  signalList.innerHTML=html;
-
-}
-
-
-/*
-==================================================
-バックテスト
-==================================================
-*/
-
-function runBacktest(
-  candles,
-  signals
-){
-
-  let win=0;
-
-  let loss=0;
-
-
-  const target=0.10;
-
-
-  signals.forEach(function(s){
-
-    if(s.move>=target){
-
-      win++;
-
-    }
-    else{
-
-      loss++;
-
-    }
-
-  });
-
-
-  const total =
-  win+loss;
-
-
-  totalSignals.textContent=
-  total;
-
-
-  wins.textContent=
-  win;
-
-
-  losses.textContent=
-  loss;
-
-
-  if(total===0){
-
-    winRate.textContent=
-    "---";
-
-  }
-  else{
-
-    winRate.textContent=
-    ((win/total)*100)
-    .toFixed(1) +
-    "%";
-
-  }
-
-}
-
-
-/*
-==================================================
-簡易チャート
-==================================================
-*/
-
-function drawChart(candles){
-
-  const width=
-  Math.max(
-    800,
-    candles.length*7
-  );
-
-
-  const height=300;
-
-
-  canvas.width=width;
-
-  canvas.height=height;
-
-
-  ctx.clearRect(
-    0,
-    0,
-    width,
-    height
-  );
-
-
-  const prices =
-  candles.flatMap(function(x){
-
-    return [
-      x.high,
-      x.low
-    ];
-
-  });
-
-
-  const max =
-  Math.max(...prices);
-
-  const min =
-  Math.min(...prices);
-
-
-  const range =
-  max-min || 1;
-
-
-  const padding=20;
-
-
-  /*
-  ローソク足
-  */
-
-  candles.forEach(
-    function(c,i){
-
-      const x =
-      padding +
-      i*7;
-
-
-      const highY =
-      padding +
-      (max-c.high) /
-      range *
-      (height-padding*2);
-
-
-      const lowY =
-      padding +
-      (max-c.low) /
-      range *
-      (height-padding*2);
-
-
-      const openY =
-      padding +
-      (max-c.open) /
-      range *
-      (height-padding*2);
-
-
-      const closeY =
-      padding +
-      (max-c.close) /
-      range *
-      (height-padding*2);
-
-
-      /*
-      ヒゲ
-      */
-
-      ctx.beginPath();
-
-      ctx.moveTo(
-        x,
-        highY
-      );
-
-      ctx.lineTo(
-        x,
-        lowY
-      );
-
-      ctx.stroke();
-
-
-      /*
-      実体
-      */
-
-      const top =
-      Math.min(
-        openY,
-        closeY
-      );
-
-
-      const bodyHeight =
-      Math.max(
-        1,
-        Math.abs(
-          openY-closeY
-        )
-      );
-
-
-      ctx.fillRect(
-        x-2,
-        top,
-        5,
-        bodyHeight
-      );
-
-    }
-
-  );
-
-}
-
-
-/*
-==================================================
-最新データ
-==================================================
-*/
-
-function showLatest(candles){
-
-  const latest =
-  candles
-  .slice(-10)
-  .reverse();
-
-
-  let html=
-
-  "<table>" +
-
-  "<tr>" +
-
-  "<th>日時</th>" +
-  "<th>Open</th>" +
-  "<th>High</th>" +
-  "<th>Low</th>" +
-  "<th>Close</th>" +
-
-  "</tr>";
-
-
-  latest.forEach(function(x){
-
-    html +=
-
-    "<tr>" +
-
-    "<td>" +
-    escapeHTML(x.datetime) +
-    "</td>" +
-
-    "<td>" +
-    x.open.toFixed(5) +
-    "</td>" +
-
-    "<td>" +
-    x.high.toFixed(5) +
-    "</td>" +
-
-    "<td>" +
-    x.low.toFixed(5) +
-    "</td>" +
-
-    "<td>" +
-    x.close.toFixed(5) +
-    "</td>" +
-
-    "</tr>";
-
-  });
-
-
-  html += "</table>";
-
-
-  latestTable.innerHTML=
-  html;
-
-}
-
-
-/*
-==================================================
-HTML安全処理
-==================================================
-*/
-
-function escapeHTML(value){
-
-  return String(value)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
-}
-
-</script>
+<script src="signals.js"></script>
+<script src="alerts.js"></script>
+<script src="chart.js"></script>
 
 </body>
 </html>
