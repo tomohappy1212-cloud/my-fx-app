@@ -1,220 +1,349 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>FX Vision AI</title>
+<title>FX Vision AI</title>
 
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-    }
+<style>
+body{
+  margin:0;
+  padding:20px;
+  background:#111;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
 
-    h1 {
-      margin-bottom: 8px;
-    }
+h1{
+  margin-bottom:5px;
+}
 
-    button {
-      padding: 14px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
+button{
+  padding:14px 20px;
+  font-size:16px;
+  border:0;
+  border-radius:8px;
+  margin:10px 0;
+}
 
-    #status {
-      margin-top: 20px;
-      padding: 15px;
-      background: #222;
-      border-radius: 10px;
-      white-space: pre-wrap;
-    }
+#status{
+  background:#222;
+  padding:15px;
+  border-radius:10px;
+  margin-top:10px;
+}
 
-    #prices {
-      margin-top: 20px;
-      padding: 15px;
-      background: #222;
-      border-radius: 10px;
-      overflow-x: auto;
-    }
-  </style>
+#signals{
+  margin-top:20px;
+}
+
+.signal{
+  background:#222;
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:10px;
+}
+
+.buy{
+  border-left:5px solid #00ff88;
+}
+
+.sell{
+  border-left:5px solid #ff5555;
+}
+
+.small{
+  color:#aaa;
+  font-size:13px;
+}
+</style>
 </head>
 
 <body>
 
-  <h1>FX Vision AI</h1>
+<h1>FX Vision AI</h1>
 
-  <p>USD/JPY・1時間足</p>
+<p>USD/JPY・1時間足</p>
 
-  <button id="loadButton">
-    価格データを取得
-  </button>
+<button id="loadButton">
+価格データを取得
+</button>
 
-  <div id="status">
-    まだ取得していません。
-  </div>
+<div id="status">
+まだ取得していません。
+</div>
 
-  <div id="prices"></div>
-
-
-  <script>
-
-    const API_URL =
-      "https://script.google.com/macros/s/AKfycbwh5D_62VC0fGY4PdgUyYNbp1lRPqbw2AcNgr8GQCNXeLLLYKcTnBLhxkK_XLgzROfjvw/exec";
+<div id="signals"></div>
 
 
-    const button =
-      document.getElementById("loadButton");
+<script>
 
-    const status =
-      document.getElementById("status");
-
-    const prices =
-      document.getElementById("prices");
+const API_URL =
+"https://script.google.com/macros/s/AKfycbwh5D_62VC0fGY4PdgUyYNbp1lRPqbw2AcNgr8GQCNXeLLLYKcTnBLhxkK_XLgzROfjvw/exec";
 
 
-    button.addEventListener("click", async function() {
+const button =
+document.getElementById("loadButton");
 
-      status.textContent =
-        "価格データを取得しています……";
+const status =
+document.getElementById("status");
 
-      prices.innerHTML = "";
-
-
-      try {
-
-        const response =
-          await fetch(API_URL);
+const signals =
+document.getElementById("signals");
 
 
-        if (!response.ok) {
+button.addEventListener("click", async function(){
 
-          throw new Error(
-            "HTTPエラー: " + response.status
-          );
+  status.textContent =
+  "価格データを取得しています……";
 
-        }
-
-
-        const data =
-          await response.json();
+  signals.innerHTML="";
 
 
-        /*
-         * Twelve Dataのエラー確認
-         */
+  try{
 
-        if (data.status === "error") {
-
-          throw new Error(
-            data.message || "APIエラー"
-          );
-
-        }
+    const response =
+    await fetch(API_URL);
 
 
-        /*
-         * データ確認
-         */
+    if(!response.ok){
 
-        if (
-          !data.values ||
-          !Array.isArray(data.values) ||
-          data.values.length === 0
-        ) {
+      throw new Error(
+        "HTTPエラー: " + response.status
+      );
 
-          throw new Error(
-            "価格データがありません。"
-          );
-
-        }
+    }
 
 
-        /*
-         * 最新データ
-         */
-
-        const latest =
-          data.values[0];
+    const data =
+    await response.json();
 
 
-        status.textContent =
-          "✅ データ取得成功\n\n" +
-          "データ数: " +
-          data.values.length +
-          "本\n\n" +
-          "最新時刻: " +
-          latest.datetime +
-          "\n" +
-          "Open: " +
-          latest.open +
-          "\n" +
-          "High: " +
-          latest.high +
-          "\n" +
-          "Low: " +
-          latest.low +
-          "\n" +
-          "Close: " +
-          latest.close;
+    if(data.status==="error"){
+
+      throw new Error(
+        data.message || "APIエラー"
+      );
+
+    }
 
 
-        /*
-         * 最初の10本を表示
-         */
+    if(
+      !data.values ||
+      !Array.isArray(data.values) ||
+      data.values.length < 5
+    ){
 
-        let html =
-          "<h3>価格データ</h3>";
+      throw new Error(
+        "分析できる価格データがありません。"
+      );
 
-        html += "<table border='1' cellpadding='8'>";
-
-        html +=
-          "<tr>" +
-          "<th>日時</th>" +
-          "<th>Open</th>" +
-          "<th>High</th>" +
-          "<th>Low</th>" +
-          "<th>Close</th>" +
-          "</tr>";
+    }
 
 
-        data.values
-          .slice(0, 10)
-          .forEach(function(item) {
+    /*
+     * 最新データ
+     */
 
-            html +=
-              "<tr>" +
-              "<td>" + item.datetime + "</td>" +
-              "<td>" + item.open + "</td>" +
-              "<td>" + item.high + "</td>" +
-              "<td>" + item.low + "</td>" +
-              "<td>" + item.close + "</td>" +
-              "</tr>";
-
-          });
+    const latest =
+    data.values[0];
 
 
-        html += "</table>";
+    status.innerHTML =
+      "✅ データ取得成功<br><br>" +
+      "データ数: " +
+      data.values.length +
+      "本<br>" +
+      "最新時刻: " +
+      latest.datetime +
+      "<br>" +
+      "現在値: " +
+      latest.close;
 
-        prices.innerHTML = html;
+
+    /*
+     * Twelve Dataは新しい順なので
+     * 古い順に並べ替える
+     */
+
+    const candles =
+    [...data.values].reverse();
 
 
-      } catch (error) {
+    /*
+     * 反転候補を探す
+     */
 
-        status.textContent =
-          "❌ エラー\n\n" +
-          error.message;
+    const found=[];
+
+
+    for(
+      let i=2;
+      i<candles.length-2;
+      i++
+    ){
+
+      const prev2 =
+      parseFloat(candles[i-2].close);
+
+      const prev1 =
+      parseFloat(candles[i-1].close);
+
+      const current =
+      parseFloat(candles[i].close);
+
+      const next1 =
+      parseFloat(candles[i+1].close);
+
+      const next2 =
+      parseFloat(candles[i+2].close);
+
+
+      /*
+       * 上昇反転候補
+       *
+       * 現在値が直前より安くなり
+       * その後2本連続で上昇
+       */
+
+      if(
+        current < prev1 &&
+        current < prev2 &&
+        next1 > current &&
+        next2 > next1
+      ){
+
+        found.push({
+
+          type:"buy",
+
+          datetime:candles[i].datetime,
+
+          price:current,
+
+          change:
+          next2-current
+
+        });
 
       }
 
+
+      /*
+       * 下落反転候補
+       *
+       * 現在値が直前より高くなり
+       * その後2本連続で下落
+       */
+
+      if(
+        current > prev1 &&
+        current > prev2 &&
+        next1 < current &&
+        next2 < next1
+      ){
+
+        found.push({
+
+          type:"sell",
+
+          datetime:candles[i].datetime,
+
+          price:current,
+
+          change:
+          current-next2
+
+        });
+
+      }
+
+    }
+
+
+    /*
+     * 結果表示
+     */
+
+    if(found.length===0){
+
+      signals.innerHTML =
+      "<div class='signal'>" +
+      "反転候補は見つかりませんでした。" +
+      "</div>";
+
+      return;
+
+    }
+
+
+    let html =
+    "<h2>🔎 反転候補</h2>";
+
+
+    found
+    .slice(-20)
+    .reverse()
+    .forEach(function(signal){
+
+      const label =
+      signal.type==="buy"
+      ? "🟢 上昇反転候補"
+      : "🔴 下落反転候補";
+
+
+      const move =
+      signal.change.toFixed(5);
+
+
+      html +=
+      "<div class='signal " +
+      signal.type +
+      "'>" +
+
+      "<strong>" +
+      label +
+      "</strong>" +
+
+      "<br><br>" +
+
+      "日時: " +
+      signal.datetime +
+
+      "<br>" +
+
+      "価格: " +
+      signal.price +
+
+      "<br>" +
+
+      "その後の値動き: " +
+      move +
+
+      "<div class='small'>" +
+      "※これは過去データから抽出した候補で、売買を保証するものではありません。" +
+      "</div>" +
+
+      "</div>";
+
     });
 
-  </script>
+
+    signals.innerHTML=html;
+
+
+  }catch(error){
+
+    status.innerHTML =
+    "❌ エラー<br><br>" +
+    error.message;
+
+  }
+
+});
+
+</script>
 
 </body>
 </html>
