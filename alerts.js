@@ -1,100 +1,98 @@
-let soundEnabled = false;
-let audioContext = null;
-let lastAlertPrice = null;
+let lastAlertMessage = "";
 
-const soundButton =
-  document.getElementById("soundButton");
+function checkAlerts(
+  currentPrice,
+  levels,
+  trend
+) {
+  const messages = [];
 
-const alertMessage =
-  document.getElementById("alertMessage");
-
-
-soundButton.addEventListener(
-  "click",
-  function () {
-
-    soundEnabled = !soundEnabled;
-
-    if (soundEnabled) {
-
-      audioContext =
-        new (
-          window.AudioContext ||
-          window.webkitAudioContext
-        )();
-
-      soundButton.textContent =
-        "🔔 通知音 ON";
-
-      playAlertSound();
-
-    } else {
-
-      soundButton.textContent =
-        "🔕 通知音 OFF";
-    }
-  }
-);
-
-
-function playAlertSound() {
-
-  if (!soundEnabled || !audioContext) {
+  if (
+    !Number.isFinite(
+      currentPrice
+    )
+  ) {
     return;
   }
 
-  const oscillator =
-    audioContext.createOscillator();
+  if (
+    levels &&
+    Number.isFinite(
+      levels.support
+    )
+  ) {
+    const supportDistance =
+      Math.abs(
+        currentPrice -
+        levels.support
+      );
 
-  const gain =
-    audioContext.createGain();
+    if (
+      supportDistance <= 0.05
+    ) {
+      messages.push(
+        "⚠ サポート付近"
+      );
+    }
+  }
 
-  oscillator.frequency.value = 880;
-  gain.gain.value = 0.08;
+  if (
+    levels &&
+    Number.isFinite(
+      levels.resistance
+    )
+  ) {
+    const resistanceDistance =
+      Math.abs(
+        currentPrice -
+        levels.resistance
+      );
 
-  oscillator.connect(gain);
-  gain.connect(audioContext.destination);
+    if (
+      resistanceDistance <= 0.05
+    ) {
+      messages.push(
+        "⚠ レジスタンス付近"
+      );
+    }
+  }
 
-  oscillator.start();
+  if (
+    trend === "上昇"
+  ) {
+    messages.push(
+      "📈 上昇トレンド"
+    );
+  }
 
-  oscillator.stop(
-    audioContext.currentTime + 0.2
-  );
+  if (
+    trend === "下降"
+  ) {
+    messages.push(
+      "📉 下降トレンド"
+    );
+  }
+
+  const message =
+    messages.length
+      ? messages.join(" / ")
+      : "監視中";
+
+  lastAlertMessage =
+    message;
+
+  const el =
+    document.getElementById(
+      "alertMessage"
+    );
+
+  if (el) {
+    el.textContent =
+      message;
+  }
 }
 
 
-function checkTrendlineAlert(
-  price,
-  linePrice
-) {
-
-  if (linePrice === null) {
-    return;
-  }
-
-  const distance =
-    Math.abs(price - linePrice);
-
-  if (distance <= 0.03) {
-
-    if (
-      lastAlertPrice === null ||
-      Math.abs(
-        lastAlertPrice - price
-      ) > 0.01
-    ) {
-
-      alertMessage.textContent =
-        "⚠️ トレンドライン付近";
-
-      playAlertSound();
-
-      lastAlertPrice = price;
-    }
-
-  } else {
-
-    alertMessage.textContent =
-      "待機中";
-  }
+function getLastAlert() {
+  return lastAlertMessage;
 }
