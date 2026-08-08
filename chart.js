@@ -17,7 +17,19 @@ let autoUpdateTimer = null;
 
 
 /* =========================
-   データ更新ボタン
+   基本設定
+========================= */
+
+const CHART_HEIGHT = 460;
+const CANDLE_WIDTH = 10;
+const RIGHT_AXIS = 75;
+const LEFT_MARGIN = 10;
+const TOP_MARGIN = 20;
+const BOTTOM_MARGIN = 35;
+
+
+/* =========================
+   データ更新
 ========================= */
 
 document
@@ -28,20 +40,13 @@ document
   );
 
 
-/* =========================
-   初回データ取得
-========================= */
-
 async function loadMarketData() {
 
   const status =
     document.getElementById("marketStatus");
 
-  status.textContent =
-    "取得中";
-
-  status.className =
-    "status offline";
+  status.textContent = "取得中";
+  status.className = "status offline";
 
 
   try {
@@ -53,12 +58,9 @@ async function loadMarketData() {
 
 
     if (!response.ok) {
-
       throw new Error(
-        "HTTP " +
-        response.status
+        "HTTP " + response.status
       );
-
     }
 
 
@@ -69,12 +71,10 @@ async function loadMarketData() {
     if (
       data.status === "error"
     ) {
-
       throw new Error(
         data.message ||
         "APIエラー"
       );
-
     }
 
 
@@ -82,11 +82,9 @@ async function loadMarketData() {
       !data.values ||
       data.values.length < 20
     ) {
-
       throw new Error(
         "価格データが不足しています。"
       );
-
     }
 
 
@@ -95,22 +93,11 @@ async function loadMarketData() {
         .map(function(item) {
 
           return {
-
-            datetime:
-              item.datetime,
-
-            open:
-              Number(item.open),
-
-            high:
-              Number(item.high),
-
-            low:
-              Number(item.low),
-
-            close:
-              Number(item.close)
-
+            datetime: item.datetime,
+            open: Number(item.open),
+            high: Number(item.high),
+            low: Number(item.low),
+            close: Number(item.close)
           };
 
         })
@@ -127,30 +114,21 @@ async function loadMarketData() {
         .reverse();
 
 
-    status.textContent =
-      "接続中";
-
-    status.className =
-      "status online";
+    status.textContent = "接続中";
+    status.className = "status online";
 
 
     updateDashboard();
 
     drawChart();
 
-
     startAutoUpdate();
-
 
   }
   catch (error) {
 
-    status.textContent =
-      "エラー";
-
-    status.className =
-      "status offline";
-
+    status.textContent = "エラー";
+    status.className = "status offline";
 
     document
       .getElementById("alertMessage")
@@ -158,7 +136,6 @@ async function loadMarketData() {
       error.message;
 
   }
-
 }
 
 
@@ -175,14 +152,9 @@ function startAutoUpdate() {
 
   autoUpdateTimer =
     setInterval(
-      async function() {
-
-        await updateMarketData();
-
-      },
+      updateMarketData,
       60000
     );
-
 }
 
 
@@ -209,9 +181,7 @@ async function updateMarketData() {
       !data.values ||
       !Array.isArray(data.values)
     ) {
-
       return;
-
     }
 
 
@@ -220,22 +190,11 @@ async function updateMarketData() {
         .map(function(item) {
 
           return {
-
-            datetime:
-              item.datetime,
-
-            open:
-              Number(item.open),
-
-            high:
-              Number(item.high),
-
-            low:
-              Number(item.low),
-
-            close:
-              Number(item.close)
-
+            datetime: item.datetime,
+            open: Number(item.open),
+            high: Number(item.high),
+            low: Number(item.low),
+            close: Number(item.close)
           };
 
         })
@@ -257,14 +216,11 @@ async function updateMarketData() {
     }
 
 
-    candles =
-      newCandles;
-
+    candles = newCandles;
 
     updateDashboard();
 
     drawChart();
-
 
   }
   catch (error) {
@@ -275,12 +231,11 @@ async function updateMarketData() {
     );
 
   }
-
 }
 
 
 /* =========================
-   ダッシュボード更新
+   ダッシュボード
 ========================= */
 
 function updateDashboard() {
@@ -301,7 +256,7 @@ function updateDashboard() {
   document
     .getElementById("currentPrice")
     .textContent =
-    price.toFixed(5);
+    price.toFixed(3);
 
 
   const trend =
@@ -333,13 +288,13 @@ function updateDashboard() {
   document
     .getElementById("support")
     .textContent =
-    levels.support.toFixed(5);
+    levels.support.toFixed(3);
 
 
   document
     .getElementById("resistance")
     .textContent =
-    levels.resistance.toFixed(5);
+    levels.resistance.toFixed(3);
 
 
   const decision =
@@ -387,27 +342,21 @@ function updateDashboard() {
   document
     .getElementById("winRate")
     .textContent =
-    result.rate.toFixed(1) +
-    "%";
+    result.rate.toFixed(1) + "%";
 
 
   showSignals(signals);
 
 
-  /*
-    トレンドライン通知
-  */
-
   checkTrendlineAlert(
     price,
     getCurrentTrendlinePrice()
   );
-
 }
 
 
 /* =========================
-   現在のトレンドライン価格
+   トレンドライン価格
 ========================= */
 
 function getCurrentTrendlinePrice() {
@@ -415,9 +364,7 @@ function getCurrentTrendlinePrice() {
   if (
     trendlinePoints.length !== 2
   ) {
-
     return null;
-
   }
 
 
@@ -428,25 +375,25 @@ function getCurrentTrendlinePrice() {
     trendlinePoints[1];
 
 
+  if (
+    p1.index === p2.index
+  ) {
+    return p2.price;
+  }
+
+
   const latestIndex =
     candles.length - 1;
 
 
-  if (
-    p2.index === p1.index
-  ) {
-
-    return p2.price;
-
-  }
-
-
   const slope =
     (
-      p2.price - p1.price
+      p2.price -
+      p1.price
     ) /
     (
-      p2.index - p1.index
+      p2.index -
+      p1.index
     );
 
 
@@ -454,15 +401,15 @@ function getCurrentTrendlinePrice() {
     p1.price +
     slope *
     (
-      latestIndex - p1.index
+      latestIndex -
+      p1.index
     )
   );
-
 }
 
 
 /* =========================
-   反転候補表示
+   反転候補
 ========================= */
 
 function showSignals(signals) {
@@ -481,7 +428,6 @@ function showSignals(signals) {
       "</div>";
 
     return;
-
   }
 
 
@@ -498,7 +444,6 @@ function showSignals(signals) {
 
 
       html +=
-
         "<div class='" +
         (
           isBuy
@@ -508,13 +453,11 @@ function showSignals(signals) {
         "'>" +
 
         "<strong>" +
-
         (
           isBuy
             ? "🟢 上昇反転"
             : "🔴 下落反転"
         ) +
-
         "</strong>" +
 
         "<br>" +
@@ -525,7 +468,7 @@ function showSignals(signals) {
 
         "価格: " +
 
-        signal.price.toFixed(5) +
+        signal.price.toFixed(3) +
 
         "</div>";
 
@@ -534,7 +477,6 @@ function showSignals(signals) {
 
   container.innerHTML =
     html;
-
 }
 
 
@@ -549,34 +491,48 @@ function drawChart() {
   }
 
 
-  const width =
+  const chartWidth =
     Math.max(
-      900,
-      candles.length * 8
+      1000,
+      candles.length *
+      CANDLE_WIDTH
     );
 
 
-  const height =
-    420;
+  const chartHeight =
+    CHART_HEIGHT;
 
 
   canvas.width =
-    width;
+    chartWidth;
 
   canvas.height =
-    height;
+    chartHeight;
 
 
   ctx.clearRect(
     0,
     0,
-    width,
-    height
+    chartWidth,
+    chartHeight
   );
 
 
+  /*
+    表示範囲
+  */
+
+  const visibleCandles =
+    candles.slice(-100);
+
+
+  const startIndex =
+    candles.length -
+    visibleCandles.length;
+
+
   const prices =
-    candles.flatMap(
+    visibleCandles.flatMap(
       function(candle) {
 
         return [
@@ -588,25 +544,133 @@ function drawChart() {
     );
 
 
-  const max =
+  let max =
     Math.max(...prices);
 
-  const min =
+  let min =
     Math.min(...prices);
+
+
+  const padding =
+    (max - min) * 0.08;
+
+
+  max += padding;
+  min -= padding;
+
 
   const range =
     max - min || 1;
 
 
+  const chartAreaWidth =
+    chartWidth -
+    RIGHT_AXIS;
+
+
+  const chartAreaHeight =
+    chartHeight -
+    BOTTOM_MARGIN -
+    TOP_MARGIN;
+
+
   function priceToY(price) {
 
     return (
-      20 +
+      TOP_MARGIN +
       (
         (max - price) /
         range
       ) *
-      (height - 40)
+      chartAreaHeight
+    );
+
+  }
+
+
+  function indexToX(index) {
+
+    return (
+      LEFT_MARGIN +
+      index *
+      CANDLE_WIDTH
+    );
+
+  }
+
+
+  /*
+    背景
+  */
+
+  ctx.fillStyle =
+    "#0b0d10";
+
+  ctx.fillRect(
+    0,
+    0,
+    chartWidth,
+    chartHeight
+  );
+
+
+  /*
+    横グリッド
+  */
+
+  ctx.strokeStyle =
+    "#242830";
+
+  ctx.lineWidth = 1;
+
+
+  for (
+    let i = 0;
+    i <= 6;
+    i++
+  ) {
+
+    const y =
+      TOP_MARGIN +
+      (
+        chartAreaHeight / 6
+      ) *
+      i;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      chartAreaWidth,
+      y
+    );
+
+    ctx.stroke();
+
+
+    const price =
+      max -
+      (
+        range / 6
+      ) *
+      i;
+
+
+    ctx.fillStyle =
+      "#a0a6b0";
+
+    ctx.font =
+      "12px sans-serif";
+
+    ctx.fillText(
+      price.toFixed(3),
+      chartAreaWidth + 8,
+      y + 4
     );
 
   }
@@ -616,11 +680,18 @@ function drawChart() {
     ローソク足
   */
 
-  candles.forEach(
-    function(candle, index) {
+  visibleCandles.forEach(
+    function(candle, visibleIndex) {
+
+      const actualIndex =
+        startIndex +
+        visibleIndex;
+
 
       const x =
-        8 + index * 8;
+        indexToX(
+          visibleIndex
+        );
 
 
       const highY =
@@ -644,6 +715,23 @@ function drawChart() {
         );
 
 
+      const isUp =
+        candle.close >=
+        candle.open;
+
+
+      /*
+        ヒゲ
+      */
+
+      ctx.strokeStyle =
+        isUp
+          ? "#26df86"
+          : "#ff5d5d";
+
+      ctx.lineWidth = 1.5;
+
+
       ctx.beginPath();
 
       ctx.moveTo(
@@ -659,23 +747,113 @@ function drawChart() {
       ctx.stroke();
 
 
-      ctx.fillRect(
-        x - 2,
+      /*
+        本体
+      */
+
+      ctx.fillStyle =
+        isUp
+          ? "#26df86"
+          : "#ff5d5d";
+
+
+      const bodyTop =
         Math.min(
           openY,
           closeY
-        ),
-        5,
+        );
+
+
+      const bodyHeight =
         Math.max(
-          1,
+          2,
           Math.abs(
             openY -
             closeY
           )
-        )
+        );
+
+
+      ctx.fillRect(
+        x - 3,
+        bodyTop,
+        6,
+        bodyHeight
       );
 
     }
+  );
+
+
+  /*
+    現在値ライン
+  */
+
+  const latest =
+    candles[
+      candles.length - 1
+    ];
+
+
+  const currentY =
+    priceToY(
+      latest.close
+    );
+
+
+  ctx.strokeStyle =
+    "#ffd45a";
+
+  ctx.setLineDash([
+    5,
+    5
+  ]);
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    0,
+    currentY
+  );
+
+  ctx.lineTo(
+    chartAreaWidth,
+    currentY
+  );
+
+  ctx.stroke();
+
+
+  ctx.setLineDash([]);
+
+
+  /*
+    現在値ラベル
+  */
+
+  ctx.fillStyle =
+    "#ffd45a";
+
+  ctx.fillRect(
+    chartAreaWidth,
+    currentY - 10,
+    RIGHT_AXIS,
+    20
+  );
+
+
+  ctx.fillStyle =
+    "#111318";
+
+  ctx.font =
+    "bold 12px sans-serif";
+
+
+  ctx.fillText(
+    latest.close.toFixed(3),
+    chartAreaWidth + 7,
+    currentY + 4
   );
 
 
@@ -694,13 +872,25 @@ function drawChart() {
       trendlinePoints[1];
 
 
+    const p1Visible =
+      p1.index -
+      startIndex;
+
+
+    const p2Visible =
+      p2.index -
+      startIndex;
+
+
     const x1 =
-      8 +
-      p1.index * 8;
+      indexToX(
+        p1Visible
+      );
 
     const x2 =
-      8 +
-      p2.index * 8;
+      indexToX(
+        p2Visible
+      );
 
 
     const y1 =
@@ -712,6 +902,12 @@ function drawChart() {
       priceToY(
         p2.price
       );
+
+
+    ctx.strokeStyle =
+      "#ffffff";
+
+    ctx.lineWidth = 2;
 
 
     ctx.beginPath();
@@ -733,24 +929,23 @@ function drawChart() {
       ラインを右端まで延長
     */
 
-    const currentLinePrice =
+    const linePrice =
       getCurrentTrendlinePrice();
 
 
     if (
-      currentLinePrice !== null
+      linePrice !== null
     ) {
 
-      const currentX =
-        8 +
-        (
-          candles.length - 1
-        ) * 8;
+      const rightX =
+        indexToX(
+          visibleCandles.length - 1
+        );
 
 
-      const currentY =
+      const rightY =
         priceToY(
-          currentLinePrice
+          linePrice
         );
 
 
@@ -762,13 +957,62 @@ function drawChart() {
       );
 
       ctx.lineTo(
-        currentX,
-        currentY
+        rightX,
+        rightY
       );
 
       ctx.stroke();
 
     }
+
+  }
+
+
+  /*
+    時間軸
+  */
+
+  ctx.fillStyle =
+    "#858b96";
+
+  ctx.font =
+    "11px sans-serif";
+
+
+  const labelStep =
+    Math.max(
+      1,
+      Math.floor(
+        visibleCandles.length / 6
+      )
+    );
+
+
+  for (
+    let i = 0;
+    i < visibleCandles.length;
+    i += labelStep
+  ) {
+
+    const candle =
+      visibleCandles[i];
+
+
+    const x =
+      indexToX(i);
+
+
+    const label =
+      String(
+        candle.datetime || ""
+      ).slice(-5);
+
+
+    ctx.fillText(
+      label,
+      x - 14,
+      chartHeight - 10
+    );
 
   }
 
@@ -798,28 +1042,41 @@ canvas.addEventListener(
 
 
     const index =
-      Math.floor(x / 8);
+      Math.floor(
+        x / CANDLE_WIDTH
+      );
+
+
+    const visibleStart =
+      Math.max(
+        0,
+        candles.length - 100
+      );
+
+
+    const actualIndex =
+      visibleStart + index;
 
 
     if (
-      index < 0 ||
-      index >= candles.length
+      actualIndex < 0 ||
+      actualIndex >= candles.length
     ) {
-
       return;
-
     }
 
 
     const candle =
-      candles[index];
+      candles[actualIndex];
 
 
     trendlinePoints.push({
 
-      index: index,
+      index:
+        actualIndex,
 
-      price: candle.close
+      price:
+        candle.close
 
     });
 
@@ -849,11 +1106,6 @@ canvas.addEventListener(
 
     drawChart();
 
-
-    /*
-      設定直後にも判定
-    */
-
     updateDashboard();
 
   }
@@ -861,7 +1113,7 @@ canvas.addEventListener(
 
 
 /* =========================
-   ラインを消す
+   ライン削除
 ========================= */
 
 document
