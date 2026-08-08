@@ -1,0 +1,228 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0e1014;
+  color: #ffffff;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.topbar {
+  padding: 18px;
+  background: #171a20;
+  border-bottom: 1px solid #292d35;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.subtitle {
+  margin-top: 4px;
+  color: #8f96a3;
+  font-size: 13px;
+}
+
+.status {
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.online {
+  background: #123d2a;
+  color: #3ee88c;
+}
+
+.offline {
+  background: #392020;
+  color: #ff7777;
+}
+
+main {
+  max-width: 1000px;
+  margin: auto;
+  padding: 14px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 15px;
+  background: #ffffff;
+  color: #111318;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.card,
+.chartCard,
+.signalCard,
+.backtestCard,
+.trendlineCard,
+.signalsList {
+  background: #171a20;
+  border: 1px solid #292d35;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.card span,
+.levelCard span,
+.backtestGrid span {
+  display: block;
+  color: #8f96a3;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.card strong {
+  font-size: 18px;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chartHeader h2 {
+  margin-bottom: 3px;
+}
+
+.chartHeader span {
+  color: #8f96a3;
+  font-size: 12px;
+}
+
+#alertMessage {
+  color: #ffd45a;
+  font-size: 13px;
+}
+
+#chartContainer {
+  margin-top: 12px;
+  width: 100%;
+  height: 420px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #0b0d10;
+  border-radius: 9px;
+}
+
+#chartCanvas {
+  display: block;
+  height: 420px;
+}
+
+.levels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.levelCard {
+  background: #171a20;
+  border: 1px solid #292d35;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.levelCard strong {
+  font-size: 18px;
+}
+
+.signalBuy {
+  border-left: 4px solid #26df86;
+  padding: 12px;
+  background: #19251f;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.signalSell {
+  border-left: 4px solid #ff5d5d;
+  padding: 12px;
+  background: #291b1d;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.signalWait {
+  border-left: 4px solid #999;
+  padding: 12px;
+  background: #202228;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.backtestGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.backtestGrid > div {
+  background: #22252c;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.backtestGrid strong {
+  font-size: 18px;
+}
+
+@media (max-width: 650px) {
+
+  .dashboard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .backtestGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+  }
+
+  #chartContainer {
+    height: 350px;
+  }
+
+  #chartCanvas {
+    height: 350px;
+  }
+}
