@@ -2,103 +2,382 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>FX Vision AI</title>
 
 <style>
+
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
-  padding:20px;
-  background:#111;
+  background:#101114;
   color:#fff;
-  font-family:Arial,sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+header{
+  padding:20px;
+  background:#181a20;
+  border-bottom:1px solid #2b2e36;
 }
 
 h1{
-  margin-bottom:5px;
+  margin:0;
+  font-size:24px;
+}
+
+.subtitle{
+  color:#999;
+  margin-top:5px;
+}
+
+main{
+  padding:16px;
+  max-width:900px;
+  margin:auto;
 }
 
 button{
-  padding:14px 20px;
-  font-size:16px;
-  border:0;
-  border-radius:8px;
-  margin:10px 0;
-}
-
-#status{
-  background:#222;
+  width:100%;
   padding:15px;
+  margin:6px 0;
+  border:0;
   border-radius:10px;
-  margin-top:10px;
+  background:#fff;
+  color:#111;
+  font-size:16px;
+  font-weight:bold;
 }
 
-#signals{
-  margin-top:20px;
+button:active{
+  transform:scale(.98);
+}
+
+.card{
+  background:#181a20;
+  border:1px solid #2b2e36;
+  border-radius:12px;
+  padding:16px;
+  margin-top:14px;
+}
+
+.success{
+  border-left:4px solid #20d080;
+}
+
+.error{
+  border-left:4px solid #ff5050;
+}
+
+.metric{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.metric div{
+  background:#22252d;
+  padding:12px;
+  border-radius:8px;
+}
+
+.metric span{
+  display:block;
+  color:#999;
+  font-size:12px;
+  margin-bottom:5px;
+}
+
+.metric strong{
+  font-size:18px;
 }
 
 .signal{
-  background:#222;
+  padding:14px;
+  margin-top:10px;
   border-radius:10px;
-  padding:15px;
-  margin-bottom:10px;
+  background:#22252d;
 }
 
 .buy{
-  border-left:5px solid #00ff88;
+  border-left:5px solid #20d080;
 }
 
 .sell{
-  border-left:5px solid #ff5555;
+  border-left:5px solid #ff5050;
+}
+
+.buy strong{
+  color:#20d080;
+}
+
+.sell strong{
+  color:#ff5050;
 }
 
 .small{
-  color:#aaa;
+  color:#888;
+  font-size:12px;
+  margin-top:8px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
   font-size:13px;
 }
+
+th,td{
+  padding:8px;
+  border-bottom:1px solid #333;
+  text-align:right;
+}
+
+th:first-child,
+td:first-child{
+  text-align:left;
+}
+
+#chart{
+  width:100%;
+  height:300px;
+  overflow-x:auto;
+  background:#111;
+  border-radius:10px;
+}
+
+canvas{
+  display:block;
+}
+
 </style>
 </head>
 
+
 <body>
+
+<header>
 
 <h1>FX Vision AI</h1>
 
-<p>USD/JPY・1時間足</p>
-
-<button id="loadButton">
-価格データを取得
-</button>
-
-<div id="status">
-まだ取得していません。
+<div class="subtitle">
+USD/JPY ・ 1時間足
 </div>
 
-<div id="signals"></div>
+</header>
+
+
+<main>
+
+<button id="loadButton">
+📊 価格データを取得
+</button>
+
+
+<div id="status" class="card">
+
+まだデータを取得していません。
+
+</div>
+
+
+<div id="summary" class="card">
+
+<h2>📈 市場データ</h2>
+
+<div class="metric">
+
+<div>
+<span>現在値</span>
+<strong id="current">---</strong>
+</div>
+
+<div>
+<span>データ本数</span>
+<strong id="count">---</strong>
+</div>
+
+<div>
+<span>最高値</span>
+<strong id="high">---</strong>
+</div>
+
+<div>
+<span>最安値</span>
+<strong id="low">---</strong>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>📉 チャート</h2>
+
+<div id="chart">
+
+<canvas id="canvas"></canvas>
+
+</div>
+
+</div>
+
+
+<div id="signals" class="card">
+
+<h2>🔎 反転候補</h2>
+
+<p class="small">
+価格データから機械的に抽出した過去の反転候補です。
+</p>
+
+<div id="signalList">
+まだ分析していません。
+</div>
+
+</div>
+
+
+<div id="backtest" class="card">
+
+<h2>🧪 過去検証</h2>
+
+<div class="metric">
+
+<div>
+<span>反転候補数</span>
+<strong id="totalSignals">---</strong>
+</div>
+
+<div>
+<span>成功数</span>
+<strong id="wins">---</strong>
+</div>
+
+<div>
+<span>成功率</span>
+<strong id="winRate">---</strong>
+</div>
+
+<div>
+<span>失敗数</span>
+<strong id="losses">---</strong>
+</div>
+
+</div>
+
+<p class="small">
+成功判定：反転候補の後、2本以内に
+0.10円以上有利な方向へ動いた場合。
+これは単純化した検証条件です。
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h2>🕐 最新データ</h2>
+
+<div id="latestTable">
+まだありません。
+</div>
+
+</div>
+
+
+</main>
 
 
 <script>
+
+
+/*
+==================================================
+Google Apps Script
+==================================================
+*/
 
 const API_URL =
 "https://script.google.com/macros/s/AKfycbwh5D_62VC0fGY4PdgUyYNbp1lRPqbw2AcNgr8GQCNXeLLLYKcTnBLhxkK_XLgzROfjvw/exec";
 
 
-const button =
+/*
+==================================================
+DOM
+==================================================
+*/
+
+const loadButton =
 document.getElementById("loadButton");
 
 const status =
 document.getElementById("status");
 
-const signals =
-document.getElementById("signals");
+const current =
+document.getElementById("current");
+
+const count =
+document.getElementById("count");
+
+const high =
+document.getElementById("high");
+
+const low =
+document.getElementById("low");
+
+const signalList =
+document.getElementById("signalList");
+
+const totalSignals =
+document.getElementById("totalSignals");
+
+const wins =
+document.getElementById("wins");
+
+const losses =
+document.getElementById("losses");
+
+const winRate =
+document.getElementById("winRate");
+
+const latestTable =
+document.getElementById("latestTable");
+
+const canvas =
+document.getElementById("canvas");
+
+const ctx =
+canvas.getContext("2d");
 
 
-button.addEventListener("click", async function(){
+/*
+==================================================
+データ取得
+==================================================
+*/
 
-  status.textContent =
-  "価格データを取得しています……";
+loadButton.addEventListener(
+"click",
+loadData
+);
 
-  signals.innerHTML="";
+
+async function loadData(){
+
+  status.className="card";
+
+  status.textContent=
+  "⏳ 価格データを取得しています……";
+
+  signalList.innerHTML=
+  "分析中……";
 
 
   try{
@@ -110,7 +389,8 @@ button.addEventListener("click", async function(){
     if(!response.ok){
 
       throw new Error(
-        "HTTPエラー: " + response.status
+        "HTTPエラー " +
+        response.status
       );
 
     }
@@ -123,7 +403,8 @@ button.addEventListener("click", async function(){
     if(data.status==="error"){
 
       throw new Error(
-        data.message || "APIエラー"
+        data.message ||
+        "Twelve Data APIエラー"
       );
 
     }
@@ -131,217 +412,652 @@ button.addEventListener("click", async function(){
 
     if(
       !data.values ||
-      !Array.isArray(data.values) ||
-      data.values.length < 5
+      !Array.isArray(data.values)
     ){
 
       throw new Error(
-        "分析できる価格データがありません。"
+        "価格データがありません。"
+      );
+
+    }
+
+
+    if(data.values.length<5){
+
+      throw new Error(
+        "分析に必要なデータが不足しています。"
       );
 
     }
 
 
     /*
-     * 最新データ
-     */
-
-    const latest =
-    data.values[0];
-
-
-    status.innerHTML =
-      "✅ データ取得成功<br><br>" +
-      "データ数: " +
-      data.values.length +
-      "本<br>" +
-      "最新時刻: " +
-      latest.datetime +
-      "<br>" +
-      "現在値: " +
-      latest.close;
-
-
-    /*
-     * Twelve Dataは新しい順なので
-     * 古い順に並べ替える
-     */
+    新しい順
+    ↓
+    古い順
+    */
 
     const candles =
-    [...data.values].reverse();
+    data.values
+    .map(function(x){
+
+      return {
+
+        datetime:x.datetime,
+
+        open:Number(x.open),
+
+        high:Number(x.high),
+
+        low:Number(x.low),
+
+        close:Number(x.close)
+
+      };
+
+    })
+    .reverse();
 
 
     /*
-     * 反転候補を探す
-     */
+    数値チェック
+    */
 
-    const found=[];
+    const valid =
+    candles.filter(function(x){
 
-
-    for(
-      let i=2;
-      i<candles.length-2;
-      i++
-    ){
-
-      const prev2 =
-      parseFloat(candles[i-2].close);
-
-      const prev1 =
-      parseFloat(candles[i-1].close);
-
-      const current =
-      parseFloat(candles[i].close);
-
-      const next1 =
-      parseFloat(candles[i+1].close);
-
-      const next2 =
-      parseFloat(candles[i+2].close);
-
-
-      /*
-       * 上昇反転候補
-       *
-       * 現在値が直前より安くなり
-       * その後2本連続で上昇
-       */
-
-      if(
-        current < prev1 &&
-        current < prev2 &&
-        next1 > current &&
-        next2 > next1
-      ){
-
-        found.push({
-
-          type:"buy",
-
-          datetime:candles[i].datetime,
-
-          price:current,
-
-          change:
-          next2-current
-
-        });
-
-      }
-
-
-      /*
-       * 下落反転候補
-       *
-       * 現在値が直前より高くなり
-       * その後2本連続で下落
-       */
-
-      if(
-        current > prev1 &&
-        current > prev2 &&
-        next1 < current &&
-        next2 < next1
-      ){
-
-        found.push({
-
-          type:"sell",
-
-          datetime:candles[i].datetime,
-
-          price:current,
-
-          change:
-          current-next2
-
-        });
-
-      }
-
-    }
-
-
-    /*
-     * 結果表示
-     */
-
-    if(found.length===0){
-
-      signals.innerHTML =
-      "<div class='signal'>" +
-      "反転候補は見つかりませんでした。" +
-      "</div>";
-
-      return;
-
-    }
-
-
-    let html =
-    "<h2>🔎 反転候補</h2>";
-
-
-    found
-    .slice(-20)
-    .reverse()
-    .forEach(function(signal){
-
-      const label =
-      signal.type==="buy"
-      ? "🟢 上昇反転候補"
-      : "🔴 下落反転候補";
-
-
-      const move =
-      signal.change.toFixed(5);
-
-
-      html +=
-      "<div class='signal " +
-      signal.type +
-      "'>" +
-
-      "<strong>" +
-      label +
-      "</strong>" +
-
-      "<br><br>" +
-
-      "日時: " +
-      signal.datetime +
-
-      "<br>" +
-
-      "価格: " +
-      signal.price +
-
-      "<br>" +
-
-      "その後の値動き: " +
-      move +
-
-      "<div class='small'>" +
-      "※これは過去データから抽出した候補で、売買を保証するものではありません。" +
-      "</div>" +
-
-      "</div>";
+      return Number.isFinite(x.open) &&
+             Number.isFinite(x.high) &&
+             Number.isFinite(x.low) &&
+             Number.isFinite(x.close);
 
     });
 
 
-    signals.innerHTML=html;
+    if(valid.length<5){
+
+      throw new Error(
+        "有効な価格データがありません。"
+      );
+
+    }
 
 
-  }catch(error){
+    status.className=
+    "card success";
 
-    status.innerHTML =
+    status.innerHTML=
+    "✅ データ取得成功<br><br>" +
+    "USD/JPY 1時間足<br>" +
+    valid.length +
+    "本のデータを取得しました。";
+
+
+    /*
+    基本情報
+    */
+
+    const latest =
+    valid[valid.length-1];
+
+
+    current.textContent=
+    latest.close.toFixed(5);
+
+
+    count.textContent=
+    valid.length;
+
+
+    const highs =
+    valid.map(x=>x.high);
+
+    const lows =
+    valid.map(x=>x.low);
+
+
+    high.textContent=
+    Math.max(...highs).toFixed(5);
+
+
+    low.textContent=
+    Math.min(...lows).toFixed(5);
+
+
+    /*
+    チャート
+    */
+
+    drawChart(valid);
+
+
+    /*
+    反転候補
+    */
+
+    const signals =
+    findReversals(valid);
+
+
+    showSignals(signals);
+
+
+    /*
+    バックテスト
+    */
+
+    runBacktest(
+      valid,
+      signals
+    );
+
+
+    /*
+    最新データ
+    */
+
+    showLatest(valid);
+
+
+  }
+  catch(error){
+
+    status.className=
+    "card error";
+
+    status.innerHTML=
     "❌ エラー<br><br>" +
-    error.message;
+    escapeHTML(error.message);
+
+
+    signalList.innerHTML=
+    "分析できませんでした。";
 
   }
 
-});
+}
+
+
+/*
+==================================================
+反転候補
+==================================================
+*/
+
+function findReversals(candles){
+
+  const result=[];
+
+
+  for(
+    let i=2;
+    i<candles.length-2;
+    i++
+  ){
+
+    const a =
+    candles[i-2];
+
+    const b =
+    candles[i-1];
+
+    const c =
+    candles[i];
+
+    const d =
+    candles[i+1];
+
+    const e =
+    candles[i+2];
+
+
+    /*
+    上昇反転
+
+    現在の安値が
+    前2本より低く、
+
+    その後2本で
+    高くなっている
+    */
+
+    if(
+      c.low < a.low &&
+      c.low < b.low &&
+      d.close > c.close &&
+      e.close > d.close
+    ){
+
+      result.push({
+
+        type:"buy",
+
+        datetime:c.datetime,
+
+        price:c.close,
+
+        entry:c.close,
+
+        exit:e.close,
+
+        move:e.close-c.close
+
+      });
+
+    }
+
+
+    /*
+    下落反転
+    */
+
+    if(
+      c.high > a.high &&
+      c.high > b.high &&
+      d.close < c.close &&
+      e.close < d.close
+    ){
+
+      result.push({
+
+        type:"sell",
+
+        datetime:c.datetime,
+
+        price:c.close,
+
+        entry:c.close,
+
+        exit:e.close,
+
+        move:c.close-e.close
+
+      });
+
+    }
+
+  }
+
+
+  return result;
+
+}
+
+
+/*
+==================================================
+反転候補表示
+==================================================
+*/
+
+function showSignals(signals){
+
+  if(signals.length===0){
+
+    signalList.innerHTML=
+    "反転候補は見つかりませんでした。";
+
+    return;
+
+  }
+
+
+  let html="";
+
+
+  signals
+  .slice(-20)
+  .reverse()
+  .forEach(function(s){
+
+    const isBuy =
+    s.type==="buy";
+
+
+    const label =
+    isBuy
+    ? "🟢 上昇反転候補"
+    : "🔴 下落反転候補";
+
+
+    html +=
+
+    "<div class='signal " +
+    (isBuy?"buy":"sell") +
+    "'>" +
+
+    "<strong>" +
+    label +
+    "</strong>" +
+
+    "<br><br>" +
+
+    "日時： " +
+    escapeHTML(s.datetime) +
+
+    "<br>" +
+
+    "価格： " +
+    s.price.toFixed(5) +
+
+    "<br>" +
+
+    "その後の値動き： " +
+    s.move.toFixed(5) +
+
+    "</div>";
+
+  });
+
+
+  signalList.innerHTML=html;
+
+}
+
+
+/*
+==================================================
+バックテスト
+==================================================
+*/
+
+function runBacktest(
+  candles,
+  signals
+){
+
+  let win=0;
+
+  let loss=0;
+
+
+  const target=0.10;
+
+
+  signals.forEach(function(s){
+
+    if(s.move>=target){
+
+      win++;
+
+    }
+    else{
+
+      loss++;
+
+    }
+
+  });
+
+
+  const total =
+  win+loss;
+
+
+  totalSignals.textContent=
+  total;
+
+
+  wins.textContent=
+  win;
+
+
+  losses.textContent=
+  loss;
+
+
+  if(total===0){
+
+    winRate.textContent=
+    "---";
+
+  }
+  else{
+
+    winRate.textContent=
+    ((win/total)*100)
+    .toFixed(1) +
+    "%";
+
+  }
+
+}
+
+
+/*
+==================================================
+簡易チャート
+==================================================
+*/
+
+function drawChart(candles){
+
+  const width=
+  Math.max(
+    800,
+    candles.length*7
+  );
+
+
+  const height=300;
+
+
+  canvas.width=width;
+
+  canvas.height=height;
+
+
+  ctx.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  const prices =
+  candles.flatMap(function(x){
+
+    return [
+      x.high,
+      x.low
+    ];
+
+  });
+
+
+  const max =
+  Math.max(...prices);
+
+  const min =
+  Math.min(...prices);
+
+
+  const range =
+  max-min || 1;
+
+
+  const padding=20;
+
+
+  /*
+  ローソク足
+  */
+
+  candles.forEach(
+    function(c,i){
+
+      const x =
+      padding +
+      i*7;
+
+
+      const highY =
+      padding +
+      (max-c.high) /
+      range *
+      (height-padding*2);
+
+
+      const lowY =
+      padding +
+      (max-c.low) /
+      range *
+      (height-padding*2);
+
+
+      const openY =
+      padding +
+      (max-c.open) /
+      range *
+      (height-padding*2);
+
+
+      const closeY =
+      padding +
+      (max-c.close) /
+      range *
+      (height-padding*2);
+
+
+      /*
+      ヒゲ
+      */
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        x,
+        highY
+      );
+
+      ctx.lineTo(
+        x,
+        lowY
+      );
+
+      ctx.stroke();
+
+
+      /*
+      実体
+      */
+
+      const top =
+      Math.min(
+        openY,
+        closeY
+      );
+
+
+      const bodyHeight =
+      Math.max(
+        1,
+        Math.abs(
+          openY-closeY
+        )
+      );
+
+
+      ctx.fillRect(
+        x-2,
+        top,
+        5,
+        bodyHeight
+      );
+
+    }
+
+  );
+
+}
+
+
+/*
+==================================================
+最新データ
+==================================================
+*/
+
+function showLatest(candles){
+
+  const latest =
+  candles
+  .slice(-10)
+  .reverse();
+
+
+  let html=
+
+  "<table>" +
+
+  "<tr>" +
+
+  "<th>日時</th>" +
+  "<th>Open</th>" +
+  "<th>High</th>" +
+  "<th>Low</th>" +
+  "<th>Close</th>" +
+
+  "</tr>";
+
+
+  latest.forEach(function(x){
+
+    html +=
+
+    "<tr>" +
+
+    "<td>" +
+    escapeHTML(x.datetime) +
+    "</td>" +
+
+    "<td>" +
+    x.open.toFixed(5) +
+    "</td>" +
+
+    "<td>" +
+    x.high.toFixed(5) +
+    "</td>" +
+
+    "<td>" +
+    x.low.toFixed(5) +
+    "</td>" +
+
+    "<td>" +
+    x.close.toFixed(5) +
+    "</td>" +
+
+    "</tr>";
+
+  });
+
+
+  html += "</table>";
+
+
+  latestTable.innerHTML=
+  html;
+
+}
+
+
+/*
+==================================================
+HTML安全処理
+==================================================
+*/
+
+function escapeHTML(value){
+
+  return String(value)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
 
 </script>
 
