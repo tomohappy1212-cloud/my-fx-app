@@ -2,466 +2,298 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FX Vision AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSVテスト</title>
 
 <style>
-*{box-sizing:border-box}
-
 body{
-  margin:0;
-  background:#101216;
+  background:#111;
   color:white;
   font-family:Arial,sans-serif;
+  padding:20px;
 }
 
-header{
-  padding:14px;
-  background:#191c22;
-  border-bottom:1px solid #333;
-}
-
-.title{
-  font-size:20px;
-  font-weight:bold;
-}
-
-.sub{
-  color:#999;
-  margin-top:5px;
-}
-
-#chart{
-  width:100%;
-  height:55vh;
-}
-
-.tradingview-widget-container{
-  width:100%;
-  height:100%;
-}
-
-.panel{
-  margin:10px;
-  padding:14px;
-  background:#191c22;
-  border:1px solid #333;
-  border-radius:10px;
-}
-
-input{
-  width:100%;
+button{
+  padding:12px;
   margin-top:10px;
 }
 
 #result{
+  margin-top:20px;
+  padding:15px;
+  background:#222;
+  border-radius:10px;
   line-height:1.8;
-}
-
-.good{
-  color:#00e676;
-}
-
-.warn{
-  color:#ffd54f;
-}
-
-.bad{
-  color:#ff5252;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <div class="title">FX Vision AI</div>
-  <div class="sub">USD / JPY　1時間足 反転分析</div>
-</header>
+<h2>📊 USD/JPY CSVテスト</h2>
 
-<div id="chart">
-
-  <div class="tradingview-widget-container">
-
-    <div class="tradingview-widget-container__widget"></div>
-
-    <script
-      type="text/javascript"
-      src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
-      async>
-    {
-      "autosize":true,
-      "symbol":"FX:USDJPY",
-      "interval":"60",
-      "timezone":"Asia/Tokyo",
-      "theme":"dark",
-      "style":"1",
-      "locale":"ja",
-      "allow_symbol_change":false,
-      "hide_top_toolbar":false,
-      "hide_legend":false,
-      "save_image":false,
-      "calendar":false,
-      "support_host":"https://www.tradingview.com"
-    }
-    </script>
-
-  </div>
-
-</div>
-
-<div class="panel">
-
-<h2>📊 過去データ分析</h2>
-
-<p>
-USD/JPYのCSVファイルを選択してください。
-</p>
+<p>CSVファイルを選択してください。</p>
 
 <input
-type="file"
-id="csvFile"
-accept=".csv,text/csv">
-
-</div>
-
-<div class="panel">
-
-<h2>🎯 分析結果</h2>
+  type="file"
+  id="file"
+  accept=".csv,text/csv">
 
 <div id="result">
-CSVを選択してください。
-</div>
-
+まだファイルが選択されていません。
 </div>
 
 
 <script>
 
-document
-.getElementById("csvFile")
-.addEventListener("change",function(event){
+const fileInput =
+document.getElementById("file");
 
-  const file=event.target.files[0];
+const result =
+document.getElementById("result");
+
+
+fileInput.addEventListener(
+"change",
+function(){
+
+  const file=this.files[0];
 
   if(!file){
+
     return;
+
   }
 
-  const reader=new FileReader();
 
-  reader.onload=function(){
+  const reader=
+  new FileReader();
 
-    try{
 
-      analyzeCSV(reader.result);
+  reader.onload=
+  function(){
 
-    }catch(error){
+    const text=
+    reader.result;
 
-      document.getElementById("result").innerHTML=
-      '<div class="bad">'+
-      'CSVの読み込み中にエラーが発生しました。'+
-      '</div>';
 
-      console.log(error);
+    /*
+      BOMを削除
+    */
+
+    const clean=
+    text.replace(/^\uFEFF/,"");
+
+
+    /*
+      改行で分割
+    */
+
+    const lines=
+    clean.trim().split(/\r?\n/);
+
+
+    if(lines.length<2){
+
+      result.innerHTML=
+      "❌ データが少なすぎます。";
+
+      return;
 
     }
 
-  };
 
-  reader.readAsText(file);
+    /*
+      今回のTwelve Data CSVは
+      タブ区切り
+    */
 
-});
-
-
-function parseCSV(text){
-
-  text=text.replace(/^\uFEFF/,"");
-
-  const lines=text
-    .trim()
-    .split(/\r?\n/);
-
-  if(lines.length<2){
-
-    return [];
-
-  }
+    const header=
+    lines[0]
+    .split("\t")
+    .map(x=>x.trim().toLowerCase());
 
 
-  /*
-    カンマまたはタブを自動判定
-  */
+    /*
+      列の位置を確認
+    */
 
-  const delimiter=
-    lines[0].includes("\t")
-    ? "\t"
-    : ",";
+    const datetimeIndex=
+    header.indexOf("datetime");
 
+    const openIndex=
+    header.indexOf("open");
 
-  const headers=lines[0]
-    .split(delimiter)
-    .map(x =>
-      x
-      .replace(/^"|"$/g,"")
-      .trim()
-      .toLowerCase()
-    );
+    const highIndex=
+    header.indexOf("high");
 
+    const lowIndex=
+    header.indexOf("low");
 
-  const datetimeIndex=
-    headers.findIndex(x =>
-      x==="datetime" ||
-      x==="date" ||
-      x==="timestamp"
-    );
+    const closeIndex=
+    header.indexOf("close");
 
 
-  const openIndex=
-    headers.indexOf("open");
-
-  const highIndex=
-    headers.indexOf("high");
-
-  const lowIndex=
-    headers.indexOf("low");
-
-  const closeIndex=
-    headers.indexOf("close");
-
-
-  if(
-    openIndex===-1 ||
-    highIndex===-1 ||
-    lowIndex===-1 ||
-    closeIndex===-1
-  ){
-
-    throw new Error(
-      "open/high/low/close列が見つかりません"
-    );
-
-  }
-
-
-  const data=[];
-
-
-  for(let i=1;i<lines.length;i++){
-
-    if(!lines[i].trim()){
-      continue;
-    }
-
-
-    const columns=lines[i]
-      .split(delimiter)
-      .map(x =>
-        x
-        .replace(/^"|"$/g,"")
-        .trim()
-      );
-
-
-    const open=parseFloat(
-      columns[openIndex]
-    );
-
-    const high=parseFloat(
-      columns[highIndex]
-    );
-
-    const low=parseFloat(
-      columns[lowIndex]
-    );
-
-    const close=parseFloat(
-      columns[closeIndex]
-    );
-
+    /*
+      列が見つからなければ表示
+    */
 
     if(
-      Number.isFinite(open) &&
-      Number.isFinite(high) &&
-      Number.isFinite(low) &&
-      Number.isFinite(close)
+      datetimeIndex===-1 ||
+      openIndex===-1 ||
+      highIndex===-1 ||
+      lowIndex===-1 ||
+      closeIndex===-1
     ){
 
-      data.push({
+      result.innerHTML=`
 
-        datetime:
-          datetimeIndex>=0
-          ?columns[datetimeIndex]
-          :"",
+        ❌ 列を認識できません。
 
-        open:open,
-        high:high,
-        low:low,
-        close:close
+        <br><br>
 
-      });
+        認識した列：
+
+        ${header.join(" / ")}
+
+      `;
+
+      return;
 
     }
 
-  }
+
+    let count=0;
+
+    let firstData="";
+
+    let lastData="";
 
 
-  return data;
+    /*
+      データを確認
+    */
 
-}
+    for(
+      let i=1;
+      i<lines.length;
+      i++
+    ){
+
+      if(!lines[i].trim()){
+
+        continue;
+
+      }
 
 
-function analyzeCSV(text){
+      const columns=
+      lines[i].split("\t");
 
-  const data=parseCSV(text);
+
+      const datetime=
+      columns[datetimeIndex];
+
+      const open=
+      parseFloat(columns[openIndex]);
+
+      const high=
+      parseFloat(columns[highIndex]);
+
+      const low=
+      parseFloat(columns[lowIndex]);
+
+      const close=
+      parseFloat(columns[closeIndex]);
 
 
-  if(data.length<10){
+      if(
+        datetime &&
+        Number.isFinite(open) &&
+        Number.isFinite(high) &&
+        Number.isFinite(low) &&
+        Number.isFinite(close)
+      ){
 
-    document.getElementById("result").innerHTML=`
+        count++;
 
-      <div class="bad">
 
-      読み込める価格データがありません。
+        if(!firstData){
 
-      </div>
+          firstData=
+          `${datetime} / ${close}`;
+
+        }
+
+
+        lastData=
+        `${datetime} / ${close}`;
+
+      }
+
+    }
+
+
+    if(count===0){
+
+      result.innerHTML=`
+
+        ❌ データを読み込めませんでした。
+
+        <br><br>
+
+        列は認識できていますが、
+        数値として読み込めるデータがありません。
+
+      `;
+
+      return;
+
+    }
+
+
+    result.innerHTML=`
+
+      <h3>✅ 読み込み成功！</h3>
 
       <p>
-      読み込んだ行数：
-      ${data.length}
+      データ数：
+      <strong>${count}</strong>本
+      </p>
+
+      <p>
+      最初のデータ：
+      ${firstData}
+      </p>
+
+      <p>
+      最後のデータ：
+      ${lastData}
+      </p>
+
+      <hr>
+
+      <p>
+      🎉 CSVは正常に読み込めています。
       </p>
 
     `;
 
-    return;
-
-  }
+  };
 
 
-  let bullish=0;
+  reader.onerror=
+  function(){
 
-  let bearish=0;
+    result.innerHTML=
+    "❌ ファイルを読み込めませんでした。";
 
-  let signals=0;
-
-  let lowest=Infinity;
-
-  let highest=-Infinity;
+  };
 
 
-  for(
-    let i=1;
-    i<data.length-1;
-    i++
-  ){
+  reader.readAsText(file);
 
-    const previous=data[i-1];
-
-    const current=data[i];
-
-    const next=data[i+1];
-
-
-    /*
-      安値反転候補
-    */
-
-    if(
-      current.low<previous.low &&
-      next.close>current.close
-    ){
-
-      bullish++;
-
-      signals++;
-
-    }
-
-
-    /*
-      高値反転候補
-    */
-
-    if(
-      current.high>previous.high &&
-      next.close<current.close
-    ){
-
-      bearish++;
-
-      signals++;
-
-    }
-
-
-    if(current.low<lowest){
-
-      lowest=current.low;
-
-    }
-
-
-    if(current.high>highest){
-
-      highest=current.high;
-
-    }
-
-  }
-
-
-  document.getElementById("result").innerHTML=`
-
-    <div class="good">
-    ✅ CSV読み込み成功
-    </div>
-
-    <p>
-    データ数：
-    <b>${data.length}</b>本
-    </p>
-
-    <p>
-    🔵 上昇反転候補：
-    <b>${bullish}</b>箇所
-    </p>
-
-    <p>
-    🔴 下落反転候補：
-    <b>${bearish}</b>箇所
-    </p>
-
-    <p>
-    🎯 反転候補合計：
-    <b>${signals}</b>箇所
-    </p>
-
-    <hr>
-
-    <p>
-    最安値：
-    <b>${lowest.toFixed(3)}</b>
-    </p>
-
-    <p>
-    最高値：
-    <b>${highest.toFixed(3)}</b>
-    </p>
-
-    <hr>
-
-    <p class="warn">
-    ⚠️ 現在は試作アルゴリズムです。
-    </p>
-
-    <p>
-    次の段階で、反転候補がその後どれくらい
-    成功したのかを自動検証します。
-    </p>
-
-  `;
-
-}
+});
 
 </script>
 
