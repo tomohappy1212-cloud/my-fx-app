@@ -1,72 +1,88 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FX Vision AI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FX Vision AI</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#101216;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+header{
+  padding:14px;
+  background:#191c22;
+  border-bottom:1px solid #333;
+}
+.title{font-size:20px;font-weight:bold}
+.sub{color:#999;margin-top:5px}
 
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: #111318;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
+.panel{
+  margin:10px;
+  padding:14px;
+  background:#191c22;
+  border:1px solid #333;
+  border-radius:10px;
+}
 
-    header {
-      padding: 14px;
-      background: #1b1e25;
-      border-bottom: 1px solid #333;
-    }
+button{
+  background:#292e38;
+  color:#fff;
+  border:1px solid #444;
+  border-radius:7px;
+  padding:10px 14px;
+  margin:4px;
+}
 
-    .title {
-      font-size: 20px;
-      font-weight: bold;
-    }
+input{
+  width:100%;
+  padding:10px;
+  background:#111318;
+  color:white;
+  border:1px solid #444;
+  border-radius:6px;
+  margin-top:8px;
+}
 
-    .subtitle {
-      margin-top: 5px;
-      color: #999;
-    }
+#result{
+  line-height:1.7;
+}
 
-    #chart {
-      width: 100%;
-      height: 65vh;
-    }
+.good{color:#00e676}
+.warn{color:#ffd54f}
+.bad{color:#ff5252}
 
-    .analysis {
-      padding: 15px;
-      background: #1b1e25;
-      border-top: 1px solid #333;
-    }
+#chart{
+  height:400px;
+  margin:10px;
+  background:#181b22;
+  border:1px solid #333;
+  border-radius:8px;
+  overflow:hidden;
+}
 
-    .analysis h2 {
-      color: #00ff88;
-      font-size: 18px;
-    }
-
-    .tradingview-widget-container {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
+.tradingview-widget-container{
+  width:100%;
+  height:100%;
+}
+</style>
 </head>
 
 <body>
 
 <header>
   <div class="title">FX Vision AI</div>
-  <div class="subtitle">USD / JPY</div>
+  <div class="sub">USD / JPY　反転分析プロトタイプ</div>
 </header>
 
 <div id="chart">
+
   <div class="tradingview-widget-container">
+
     <div class="tradingview-widget-container__widget"></div>
 
     <script
@@ -74,34 +90,278 @@
       src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
       async>
     {
-      "autosize": true,
-      "symbol": "FX:USDJPY",
-      "interval": "60",
-      "timezone": "Asia/Tokyo",
-      "theme": "dark",
-      "style": "1",
-      "locale": "ja",
-      "allow_symbol_change": false,
-      "hide_top_toolbar": false,
-      "hide_legend": false,
-      "save_image": false,
-      "calendar": false,
-      "support_host": "https://www.tradingview.com"
+      "autosize":true,
+      "symbol":"FX:USDJPY",
+      "interval":"60",
+      "timezone":"Asia/Tokyo",
+      "theme":"dark",
+      "style":"1",
+      "locale":"ja",
+      "allow_symbol_change":false,
+      "hide_top_toolbar":false,
+      "hide_legend":false,
+      "save_image":false,
+      "calendar":false,
+      "support_host":"https://www.tradingview.com"
     }
     </script>
 
   </div>
+
 </div>
 
-<div class="analysis">
-  <h2>🤖 AI分析</h2>
-  <p>現在はチャート表示の試作品です。</p>
+<div class="panel">
+
+  <h2>📊 過去データ分析</h2>
+
   <p>
-    次の段階で、過去の値動きを分析して
-    反転候補・サポート・レジスタンスを
-    自動表示します。
+    CSV形式のUSD/JPYデータを読み込ませると、
+    高値・安値から反転候補を検出します。
   </p>
+
+  <input
+    type="file"
+    id="csvFile"
+    accept=".csv">
+
 </div>
+
+<div class="panel">
+
+  <h2>🎯 分析結果</h2>
+
+  <div id="result">
+
+    まだデータがありません。
+
+    <br><br>
+
+    CSVファイルを読み込んでください。
+
+  </div>
+
+</div>
+
+<script>
+
+document
+.getElementById("csvFile")
+.addEventListener("change",function(e){
+
+  const file=e.target.files[0];
+
+  if(!file)return;
+
+  const reader=new FileReader();
+
+  reader.onload=function(){
+
+    const text=reader.result;
+
+    analyzeCSV(text);
+
+  };
+
+  reader.readAsText(file);
+
+});
+
+
+function analyzeCSV(text){
+
+  const lines=text
+    .trim()
+    .split(/\r?\n/);
+
+  if(lines.length<10){
+
+    showResult(
+      "データが少なすぎます。",
+      "warn"
+    );
+
+    return;
+  }
+
+  let rows=[];
+
+  for(let i=1;i<lines.length;i++){
+
+    const c=lines[i].split(",");
+
+    if(c.length<5)continue;
+
+    const open=parseFloat(c[1]);
+    const high=parseFloat(c[2]);
+    const low=parseFloat(c[3]);
+    const close=parseFloat(c[4]);
+
+    if(
+      Number.isFinite(open)&&
+      Number.isFinite(high)&&
+      Number.isFinite(low)&&
+      Number.isFinite(close)
+    ){
+
+      rows.push({
+        open,
+        high,
+        low,
+        close
+      });
+
+    }
+
+  }
+
+  if(rows.length<10){
+
+    showResult(
+      "読み込める価格データがありません。",
+      "bad"
+    );
+
+    return;
+  }
+
+  let signals=0;
+
+  let bullish=0;
+
+  let bearish=0;
+
+  let support=Infinity;
+
+  let resistance=-Infinity;
+
+
+  for(
+    let i=2;
+    i<rows.length-2;
+    i++
+  ){
+
+    const p=rows[i-1];
+    const c=rows[i];
+    const n=rows[i+1];
+
+
+    /*
+      安値反転候補
+
+      前の安値より現在の安値が低く、
+      次のローソク足で上昇した場合
+    */
+
+    if(
+      c.low<p.low &&
+      n.close>c.close
+    ){
+
+      signals++;
+
+      bullish++;
+
+    }
+
+
+    /*
+      高値反転候補
+
+      前の高値より現在の高値が高く、
+      次のローソク足で下落した場合
+    */
+
+    if(
+      c.high>p.high &&
+      n.close<c.close
+    ){
+
+      signals++;
+
+      bearish++;
+
+    }
+
+
+    if(c.low<support){
+
+      support=c.low;
+
+    }
+
+
+    if(c.high>resistance){
+
+      resistance=c.high;
+
+    }
+
+  }
+
+
+  const bullishRate=
+    signals>0
+    ?(bullish/signals*100).toFixed(1)
+    :0;
+
+
+  const bearishRate=
+    signals>0
+    ?(bearish/signals*100).toFixed(1)
+    :0;
+
+
+  showResult(`
+
+    <div class="good">
+    データ数：${rows.length}本
+    </div>
+
+    <div>
+    反転候補：${signals}箇所
+    </div>
+
+    <div class="good">
+    上昇反転候補：${bullish}
+    </div>
+
+    <div class="bad">
+    下落反転候補：${bearish}
+    </div>
+
+    <hr>
+
+    <div>
+    最安値：${support.toFixed(3)}
+    </div>
+
+    <div>
+    最高値：${resistance.toFixed(3)}
+    </div>
+
+    <hr>
+
+    <div>
+    ※これは過去データを単純な条件で
+    分析した試作品です。
+    </div>
+
+  `);
+
+}
+
+
+function showResult(text,className=""){
+
+  document
+  .getElementById("result")
+  .innerHTML=
+  `<div class="${className}">${text}</div>`;
+
+}
+
+</script>
 
 </body>
 </html>
