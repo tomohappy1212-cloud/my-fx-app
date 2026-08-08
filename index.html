@@ -1,4 +1,3 @@
-index.html 
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -11,15 +10,17 @@ index.html
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
+      width: 100%;
+      height: 100%;
       background: #111318;
       color: white;
       font-family: Arial, sans-serif;
     }
 
     header {
-      padding: 15px;
+      padding: 14px;
       background: #1b1e25;
       border-bottom: 1px solid #333;
     }
@@ -29,86 +30,30 @@ index.html
       font-weight: bold;
     }
 
-    .pair {
-      margin-top: 8px;
-      color: #aaa;
-    }
-
-    .price {
-      font-size: 28px;
+    .subtitle {
       margin-top: 5px;
+      color: #999;
     }
 
     #chart {
-      height: 400px;
-      margin: 10px;
-      background: #181b22;
-      border: 1px solid #333;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .candle {
-      position: absolute;
-      width: 8px;
-    }
-
-    .up {
-      background: #26a69a;
-    }
-
-    .down {
-      background: #ef5350;
-    }
-
-    .line {
-      position: absolute;
       width: 100%;
-      height: 2px;
-      background: #f5c542;
-      top: 55%;
-    }
-
-    .signal {
-      position: absolute;
-      top: 35%;
-      left: 45%;
-      font-size: 30px;
-      color: #00ff88;
+      height: 65vh;
     }
 
     .analysis {
-      margin: 10px;
       padding: 15px;
       background: #1b1e25;
-      border-radius: 10px;
-      border: 1px solid #333;
+      border-top: 1px solid #333;
     }
 
     .analysis h2 {
-      font-size: 18px;
-      margin-top: 0;
       color: #00ff88;
+      font-size: 18px;
     }
 
-    .buttons {
-      display: flex;
-      gap: 8px;
-      padding: 10px;
-      overflow-x: auto;
-    }
-
-    button {
-      background: #292d36;
-      color: white;
-      border: 1px solid #444;
-      border-radius: 6px;
-      padding: 10px 14px;
-      white-space: nowrap;
-    }
-
-    button:active {
-      background: #444;
+    .tradingview-widget-container {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -117,55 +62,45 @@ index.html
 
 <header>
   <div class="title">FX Vision AI</div>
-  <div class="pair">USD / JPY</div>
-  <div class="price" id="price">147.235</div>
+  <div class="subtitle">USD / JPY</div>
 </header>
 
-<div class="buttons">
-  <button>1分</button>
-  <button>5分</button>
-  <button>15分</button>
-  <button>1時間</button>
-  <button>4時間</button>
-  <button>日足</button>
-</div>
-
 <div id="chart">
+  <div class="tradingview-widget-container">
+    <div class="tradingview-widget-container__widget"></div>
 
-  <div class="line"></div>
+    <script
+      type="text/javascript"
+      src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+      async>
+    {
+      "autosize": true,
+      "symbol": "FX:USDJPY",
+      "interval": "60",
+      "timezone": "Asia/Tokyo",
+      "theme": "dark",
+      "style": "1",
+      "locale": "ja",
+      "allow_symbol_change": false,
+      "hide_top_toolbar": false,
+      "hide_legend": false,
+      "save_image": false,
+      "calendar": false,
+      "support_host": "https://www.tradingview.com"
+    }
+    </script>
 
-  <div class="signal">○</div>
-
-  <div class="candle up" style="left:5%;height:80px;bottom:25%;"></div>
-  <div class="candle down" style="left:12%;height:120px;bottom:30%;"></div>
-  <div class="candle up" style="left:19%;height:150px;bottom:20%;"></div>
-  <div class="candle up" style="left:26%;height:90px;bottom:35%;"></div>
-  <div class="candle down" style="left:33%;height:130px;bottom:28%;"></div>
-  <div class="candle up" style="left:40%;height:170px;bottom:18%;"></div>
-  <div class="candle down" style="left:47%;height:100px;bottom:40%;"></div>
-  <div class="candle up" style="left:54%;height:140px;bottom:25%;"></div>
-  <div class="candle up" style="left:61%;height:180px;bottom:15%;"></div>
-  <div class="candle down" style="left:68%;height:110px;bottom:35%;"></div>
-  <div class="candle up" style="left:75%;height:160px;bottom:20%;"></div>
-  <div class="candle up" style="left:82%;height:130px;bottom:30%;"></div>
-  <div class="candle down" style="left:89%;height:100px;bottom:40%;"></div>
-
+  </div>
 </div>
 
 <div class="analysis">
-
   <h2>🤖 AI分析</h2>
-
-  <p>現在は試作品です。</p>
-
+  <p>現在はチャート表示の試作品です。</p>
   <p>
-    🟢 サポートライン候補を表示中
+    次の段階で、過去の値動きを分析して
+    反転候補・サポート・レジスタンスを
+    自動表示します。
   </p>
-
-  <p>
-    ○ 反発候補を表示中
-  </p>
-
 </div>
 
 </body>
