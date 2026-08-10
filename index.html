@@ -12,7 +12,7 @@
 <header class="topbar">
   <div>
     <h1>FX Vision AI</h1>
-    <p>USD/JPY・反転候補・過去検証</p>
+    <p>USD/JPY・自動分析</p>
   </div>
 
   <div id="marketStatus" class="status">
@@ -56,6 +56,38 @@
     <div class="card">
       <span>判定</span>
       <strong id="decision">---</strong>
+    </div>
+
+  </section>
+
+
+  <!-- 自動分析 -->
+  <section class="card analysisCard">
+
+    <h2>自動分析</h2>
+
+    <div class="analysisResult">
+
+      <div class="analysisItem">
+        <span>勝率</span>
+        <strong id="analysisWinRate">---</strong>
+      </div>
+
+      <div class="analysisItem">
+        <span>判断</span>
+        <strong id="analysisDecision">---</strong>
+      </div>
+
+    </div>
+
+    <div class="analysisReason">
+
+      <span>根拠</span>
+
+      <p id="analysisReason">
+        データ取得待ち
+      </p>
+
     </div>
 
   </section>
@@ -130,7 +162,7 @@
   </section>
 
 
-  <section class="card signalCard">
+  <section class="card">
 
     <h2>反転候補</h2>
 
@@ -141,6 +173,7 @@
   </section>
 
 
+  <!-- 過去検証は表示を簡略化 -->
   <section class="card">
 
     <h2>過去検証</h2>
