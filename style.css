@@ -108,6 +108,74 @@ h2 {
   font-size: 15px;
 }
 
+
+/* =========================
+   自動分析
+========================= */
+
+.analysisCard {
+  margin-bottom: 10px;
+}
+
+.analysisResult {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.analysisItem {
+  padding: 14px;
+  background: #181d25;
+  border: 1px solid #303844;
+  border-radius: 8px;
+}
+
+.analysisItem span {
+  display: block;
+  margin-bottom: 6px;
+  color: #7f8895;
+  font-size: 11px;
+}
+
+.analysisItem strong {
+  font-size: 23px;
+}
+
+#analysisWinRate {
+  color: #e7c75a;
+}
+
+#analysisDecision {
+  color: #38df8b;
+}
+
+.analysisReason {
+  margin-top: 8px;
+  padding: 12px;
+  background: #0d1117;
+  border: 1px solid #252c35;
+  border-radius: 8px;
+}
+
+.analysisReason > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #7f8895;
+  font-size: 11px;
+}
+
+.analysisReason p {
+  margin: 0;
+  color: #d8dde4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+
+/* =========================
+   チャート
+========================= */
+
 .chartCard {
   background: #0a0d12;
   border: 1px solid #29303a;
@@ -198,12 +266,22 @@ h2 {
   font-size: 11px;
 }
 
+
+/* =========================
+   サポート・レジスタンス
+========================= */
+
 .levels {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 10px;
 }
+
+
+/* =========================
+   シグナル
+========================= */
 
 .signalCard {
   margin-top: 10px;
@@ -219,6 +297,11 @@ h2 {
   padding: 6px 0;
   border-bottom: 1px solid #202630;
 }
+
+
+/* =========================
+   過去検証
+========================= */
 
 .backtestGrid {
   display: grid;
@@ -244,6 +327,11 @@ h2 {
   font-size: 17px;
 }
 
+
+/* =========================
+   スマホ
+========================= */
+
 @media (max-width: 700px) {
 
   main {
@@ -259,6 +347,10 @@ h2 {
   }
 
   .dashboard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .analysisResult {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -280,5 +372,9 @@ h2 {
 
   .priceLabel {
     font-size: 11px;
+  }
+
+  .analysisItem strong {
+    font-size: 20px;
   }
 }
