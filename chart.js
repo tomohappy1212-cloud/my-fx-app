@@ -1608,3 +1608,5 @@ function escapeHTML(
       "&gt;"
     );
 }
+
+loadData();
