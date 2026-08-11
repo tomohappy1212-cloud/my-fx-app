@@ -112,7 +112,7 @@ async function loadData() {
       timer =
         setInterval(
           loadData,
-          60000
+          10000
         );
     }
 
