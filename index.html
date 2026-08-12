@@ -2,27 +2,41 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>FX Vision AI</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 </head>
 
 <body>
 
 <header class="topbar">
+
   <div>
     <h1>FX Vision AI</h1>
     <p>USD/JPY・自動分析</p>
   </div>
 
-  <div id="marketStatus" class="status">
-    待機中
+  <div
+    id="marketStatus"
+    class="status"
+  >
+    接続準備中
   </div>
+
 </header>
 
 
 <main>
 
+  <!-- 操作 -->
   <section class="toolbar">
 
     <button id="loadButton">
@@ -36,6 +50,7 @@
   </section>
 
 
+  <!-- ダッシュボード -->
   <section class="dashboard">
 
     <div class="card">
@@ -70,15 +85,23 @@
 
       <div class="analysisItem">
         <span>勝率</span>
-        <strong id="analysisWinRate">---</strong>
+
+        <strong id="analysisWinRate">
+          ---
+        </strong>
       </div>
+
 
       <div class="analysisItem">
         <span>判断</span>
-        <strong id="analysisDecision">---</strong>
+
+        <strong id="analysisDecision">
+          ---
+        </strong>
       </div>
 
     </div>
+
 
     <div class="analysisReason">
 
@@ -93,54 +116,91 @@
   </section>
 
 
+  <!-- USD/JPYチャート -->
   <section class="chartCard">
 
     <div class="chartHeader">
 
-      <strong>USD/JPY</strong>
+      <strong>
+        USD/JPY
+      </strong>
 
       <span id="alertMessage">
-        待機中
+        TradingView接続中
       </span>
 
     </div>
 
 
-    <div class="chartArea">
+    <div
+      class="chartArea"
+      style="
+        width:100%;
+        height:520px;
+      "
+    >
 
       <div
-        id="chartScroll"
-        class="chartScroll"
+        class="tradingview-widget-container"
+        style="
+          width:100%;
+          height:100%;
+        "
       >
 
-        <canvas
-          id="chartCanvas"
-        ></canvas>
+        <div
+          class="tradingview-widget-container__widget"
+          style="
+            width:100%;
+            height:100%;
+          "
+        ></div>
+
+
+        <script
+          type="text/javascript"
+          src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+          async
+        >
+        {
+          "autosize": true,
+          "symbol": "FX_IDC:USDJPY",
+          "interval": "15",
+          "timezone": "Asia/Tokyo",
+          "theme": "dark",
+          "style": "1",
+          "locale": "ja",
+          "hide_top_toolbar": false,
+          "hide_side_toolbar": false,
+          "allow_symbol_change": false,
+          "save_image": false,
+          "calendar": false,
+          "withdateranges": true,
+          "hide_volume": true,
+          "support_host": "https://www.tradingview.com"
+        }
+        </script>
 
       </div>
-
-
-      <div
-        id="priceAxis"
-        class="priceAxis"
-      ></div>
 
     </div>
 
 
     <div class="chartHelp">
-      チャートを2回クリックすると
-      トレンドラインを設定できます
+      TradingViewのUSD/JPYリアルタイムチャートを表示しています
     </div>
 
   </section>
 
 
+  <!-- サポート・レジスタンス -->
   <section class="levels">
 
     <div class="card">
 
-      <span>サポート</span>
+      <span>
+        サポート
+      </span>
 
       <strong id="support">
         ---
@@ -151,7 +211,9 @@
 
     <div class="card">
 
-      <span>レジスタンス</span>
+      <span>
+        レジスタンス
+      </span>
 
       <strong id="resistance">
         ---
@@ -162,9 +224,12 @@
   </section>
 
 
+  <!-- 反転候補 -->
   <section class="card">
 
-    <h2>反転候補</h2>
+    <h2>
+      反転候補
+    </h2>
 
     <div id="signals">
       データ取得待ち
@@ -173,43 +238,89 @@
   </section>
 
 
-  <!-- 過去検証は表示を簡略化 -->
+  <!-- 過去検証 -->
   <section class="card">
 
-    <h2>過去検証</h2>
+    <h2>
+      過去検証
+    </h2>
 
     <div class="backtestGrid">
 
       <div>
         <span>候補</span>
-        <strong id="signalCount">---</strong>
+
+        <strong id="signalCount">
+          ---
+        </strong>
       </div>
+
 
       <div>
         <span>成功</span>
-        <strong id="winCount">---</strong>
+
+        <strong id="winCount">
+          ---
+        </strong>
       </div>
+
 
       <div>
         <span>失敗</span>
-        <strong id="lossCount">---</strong>
+
+        <strong id="lossCount">
+          ---
+        </strong>
       </div>
+
 
       <div>
         <span>勝率</span>
-        <strong id="winRate">---</strong>
+
+        <strong id="winRate">
+          ---
+        </strong>
       </div>
 
     </div>
 
   </section>
 
+
+  <!-- 旧チャート用ID
+       既存JSとの一時的な互換用 -->
+  <div
+    id="legacyChart"
+    style="display:none;"
+  >
+
+    <div
+      id="chartScroll"
+      class="chartScroll"
+    >
+      <canvas
+        id="chartCanvas"
+      ></canvas>
+    </div>
+
+    <div
+      id="priceAxis"
+      class="priceAxis"
+    ></div>
+
+  </div>
+
+
 </main>
 
 
+<!-- 既存機能 -->
 <script src="signals.js"></script>
+
 <script src="alerts.js"></script>
+
 <script src="chart.js"></script>
+
 
 </body>
 </html>
