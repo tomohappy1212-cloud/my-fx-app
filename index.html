@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -11,7 +12,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css"
+    href="style.css?v=2"
   >
 </head>
 
@@ -50,27 +51,42 @@
   </section>
 
 
-  <!-- ダッシュボード -->
+  <!-- 基本情報 -->
   <section class="dashboard">
 
     <div class="card">
       <span>現在値</span>
-      <strong id="currentPrice">---</strong>
+
+      <strong id="currentPrice">
+        ---
+      </strong>
     </div>
+
 
     <div class="card">
       <span>トレンド</span>
-      <strong id="trend">---</strong>
+
+      <strong id="trend">
+        ---
+      </strong>
     </div>
+
 
     <div class="card">
       <span>RSI</span>
-      <strong id="rsi">---</strong>
+
+      <strong id="rsi">
+        ---
+      </strong>
     </div>
+
 
     <div class="card">
       <span>判定</span>
-      <strong id="decision">---</strong>
+
+      <strong id="decision">
+        ---
+      </strong>
     </div>
 
   </section>
@@ -79,25 +95,36 @@
   <!-- 自動分析 -->
   <section class="card analysisCard">
 
-    <h2>自動分析</h2>
+    <h2>
+      自動分析
+    </h2>
+
 
     <div class="analysisResult">
 
       <div class="analysisItem">
-        <span>勝率</span>
+
+        <span>
+          勝率
+        </span>
 
         <strong id="analysisWinRate">
           ---
         </strong>
+
       </div>
 
 
       <div class="analysisItem">
-        <span>判断</span>
+
+        <span>
+          判断
+        </span>
 
         <strong id="analysisDecision">
           ---
         </strong>
+
       </div>
 
     </div>
@@ -105,7 +132,9 @@
 
     <div class="analysisReason">
 
-      <span>根拠</span>
+      <span>
+        根拠
+      </span>
 
       <p id="analysisReason">
         データ取得待ち
@@ -116,7 +145,7 @@
   </section>
 
 
-  <!-- USD/JPYチャート -->
+  <!-- USD/JPY -->
   <section class="chartCard">
 
     <div class="chartHeader">
@@ -187,7 +216,9 @@
 
 
     <div class="chartHelp">
-      TradingViewのUSD/JPYリアルタイムチャートを表示しています
+
+      TradingViewのUSD/JPYチャートを表示しています
+
     </div>
 
   </section>
@@ -245,41 +276,58 @@
       過去検証
     </h2>
 
+
     <div class="backtestGrid">
 
       <div>
-        <span>候補</span>
+
+        <span>
+          候補
+        </span>
 
         <strong id="signalCount">
           ---
         </strong>
+
       </div>
 
 
       <div>
-        <span>成功</span>
+
+        <span>
+          成功
+        </span>
 
         <strong id="winCount">
           ---
         </strong>
+
       </div>
 
 
       <div>
-        <span>失敗</span>
+
+        <span>
+          失敗
+        </span>
 
         <strong id="lossCount">
           ---
         </strong>
+
       </div>
 
 
       <div>
-        <span>勝率</span>
+
+        <span>
+          勝率
+        </span>
 
         <strong id="winRate">
           ---
         </strong>
+
       </div>
 
     </div>
@@ -287,8 +335,7 @@
   </section>
 
 
-  <!-- 旧チャート用ID
-       既存JSとの一時的な互換用 -->
+  <!-- 旧チャート互換領域 -->
   <div
     id="legacyChart"
     style="display:none;"
@@ -298,10 +345,13 @@
       id="chartScroll"
       class="chartScroll"
     >
+
       <canvas
         id="chartCanvas"
       ></canvas>
+
     </div>
+
 
     <div
       id="priceAxis"
@@ -310,16 +360,16 @@
 
   </div>
 
-
 </main>
 
 
-<!-- 既存機能 -->
-<script src="signals.js"></script>
+<!-- JavaScript -->
 
-<script src="alerts.js"></script>
+<script src="signals.js?v=2"></script>
 
-<script src="chart.js"></script>
+<script src="alerts.js?v=2"></script>
+
+<script src="chart.js?v=2"></script>
 
 
 </body>
